@@ -766,6 +766,21 @@ h1 { overflow-wrap: anywhere; }
 .srow-sub { overflow: visible; white-space: normal; text-overflow: clip; overflow-wrap: anywhere; line-height: 1.35; }
 .name-form .btn-solid { background: var(--accent); color: var(--accent-ink); }
 .profile .who-mail { overflow: visible; white-space: normal; text-overflow: clip; overflow-wrap: anywhere; }
+.login-tabs { margin: 0 0 18px; }
+.field-hint { margin: -6px 2px 14px; color: var(--muted); font-size: 13px; }
+.pcard-share {
+  display: inline-block;
+  margin: 6px 0 0;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--text);
+  font-size: 12.5px;
+  font-weight: 700;
+}
+.owner-note { margin: 4px 0 0; color: var(--muted); font-size: 14px; }
+.link-on-dark { margin: 0; padding: 0; color: var(--accent); font-size: 14px; }
+.profile-verify { flex-wrap: wrap; gap: 4px 10px; }
 </style>
 </head>
 <body>
@@ -782,8 +797,11 @@ h1 { overflow-wrap: anywhere; }
   var APP_TITLE = 'Goals';
   var FONT_HREF = 'https://fonts.googleapis.com/css2?family=Manrope:wght@400..800&display=swap';
   var SDK_BASE = 'https://www.gstatic.com/firebasejs/13.2.0/';
-  var COL = 'desafios';
+  var COL = 'metas';
+  var USERS = 'usuarios';
+  var OLD_COL = 'desafios';
   var PEOPLE = '_pessoas';
+  var MIGRATED_KEY = 'goals-migrado-v3-';
   var LOCAL_KEY = 'desafio-projetos';
   var LEGACY_KEY = 'desafio-2027-estado';
   var CLOUD_KEY = 'desafio-projetos-nuvem';
@@ -815,7 +833,7 @@ h1 { overflow-wrap: anywhere; }
   var ICON_TABLE = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3.5 9.5h17M3.5 14.5h17M9.5 9.5v10" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
   var ICON_KEY = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="8" cy="15" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M11 12l8-8M16 7l2.5 2.5M14 9l2 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
   var ICON_LOGOUT = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M10 5H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h4M15 8l4 4-4 4M19 12H9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-  var APP_VERSION = '2.0';
+  var APP_VERSION = '3.0';
   var THEME_KEY = 'goals-tema';
   var ORDER_KEY = 'goals-ordem';
   var ICON_PLUS = '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>';
@@ -983,6 +1001,9 @@ h1 { overflow-wrap: anywhere; }
     }
     var c = Number(p.createdAt);
     out.createdAt = isFinite(c) && c > 0 ? c : 0;
+    out.owner = typeof p.owner === 'string' ? p.owner.slice(0, 128) : '';
+    out.members = Array.isArray(p.members) ? p.members.filter(function (m) { return typeof m === 'string' && m; }).slice(0, 50) : [];
+    out.fromV2 = p.fromV2 === true;
     return out;
   }
   function cleanNames(src, dst) {
@@ -1012,7 +1033,8 @@ h1 { overflow-wrap: anywhere; }
     return out;
   }
   function plainProject(p) {
-    return { name: p.name, goal: p.goal, start: p.start, end: p.end, freq: p.freq, values: p.values.slice(), marks: JSON.parse(JSON.stringify(p.marks)), who: JSON.parse(JSON.stringify(p.who)), createdAt: p.createdAt };
+    return { name: p.name, goal: p.goal, start: p.start, end: p.end, freq: p.freq, values: p.values.slice(), marks: JSON.parse(JSON.stringify(p.marks)), who: JSON.parse(JSON.stringify(p.who)), createdAt: p.createdAt,
+      owner: p.owner || '', members: (p.members || []).slice(), fromV2: !!p.fromV2 };
   }
   function plainState(d) {
     var out = { v: 2, projects: {}, names: JSON.parse(JSON.stringify(d.names)), updatedAt: d.updatedAt || Date.now() };
@@ -1022,7 +1044,13 @@ h1 { overflow-wrap: anywhere; }
   function projectDoc(p, uid) {
     var marks = {};
     Object.keys(p.marks).forEach(function (k) { marks[k] = { t: p.marks[k], by: p.who[k] || uid || '' }; });
-    return { v: 2, name: p.name, goal: p.goal, start: p.start, end: p.end, freq: p.freq, values: p.values.slice(), marks: marks, createdAt: p.createdAt || Date.now() };
+    return { v: 3, name: p.name, goal: p.goal, start: p.start, end: p.end, freq: p.freq, values: p.values.slice(), marks: marks, createdAt: p.createdAt || Date.now() };
+  }
+  function isShared(p) { return mode === 'cloud' && p && p.members && p.members.length > 1; }
+  function isOwner(p) { return mode !== 'cloud' || !p.owner || (me && p.owner === me.uid); }
+  function joinNames(list) {
+    if (list.length <= 1) return list.join('');
+    return list.slice(0, -1).join(', ') + ' e ' + list[list.length - 1];
   }
   function stats(p) {
     var target = sumOf(p.values);
@@ -1126,11 +1154,15 @@ h1 { overflow-wrap: anywhere; }
         '<div class="row"><button type="button" class="btn-ghost" id="migrate-yes">Enviar para a meta</button>' +
         '<button type="button" class="btn-ghost" id="migrate-no">Deixar de fora</button></div></div>' +
       '<section class="login" id="login" hidden aria-labelledby="login-title">' +
-        '<h2 id="login-title">Entrar nas metas de vocês</h2>' +
-        '<p class="login-lead">Cada um entra com o próprio e-mail e senha, e os dois veem as mesmas metas, atualizadas na hora.</p>' +
+        '<div class="seg login-tabs" id="login-tabs" role="group" aria-label="Entrar ou criar conta">' +
+          '<button type="button" data-m="in" aria-pressed="true">Entrar</button><button type="button" data-m="up" aria-pressed="false">Criar conta</button></div>' +
+        '<h2 id="login-title">Entrar no Goals</h2>' +
+        '<p class="login-lead" id="login-lead">Entre com seu e-mail e senha. Cada pessoa vê só as próprias metas e as que forem compartilhadas com ela.</p>' +
         '<form id="login-form" novalidate>' +
+          '<label class="field" id="signup-name-wrap" hidden>Seu nome<input id="signup-name" type="text" maxlength="30" autocomplete="nickname"></label>' +
           '<label class="field">E-mail<input id="login-email" type="email" autocomplete="username" inputmode="email" autocapitalize="none" spellcheck="false"></label>' +
           '<label class="field">Senha<input id="login-pass" type="password" autocomplete="current-password"></label>' +
+          '<p class="field-hint" id="pass-hint" hidden>Use pelo menos 6 caracteres.</p>' +
           '<p class="form-msg" id="login-msg" role="alert" hidden></p>' +
           '<button type="submit" class="btn-solid" id="login-btn">Entrar</button>' +
         '</form>' +
@@ -1139,7 +1171,7 @@ h1 { overflow-wrap: anywhere; }
 
       '<section id="view-home">' +
         '<section class="hero home-hero" id="home-hero" aria-label="Resumo de todas as metas" hidden>' +
-          '<p class="hero-kicker">Juntos, vocês já guardaram</p>' +
+          '<p class="hero-kicker" id="h-kicker">Você já guardou</p>' +
           '<p class="hero-total" id="h-total"></p>' +
           '<p class="hero-sub" id="h-sub"></p>' +
           '<div class="track" aria-hidden="true"><span id="h-fill"></span></div>' +
@@ -1148,20 +1180,20 @@ h1 { overflow-wrap: anywhere; }
         '</section>' +
         '<h2 class="list-title" id="list-title" hidden>Metas</h2>' +
         '<div class="projects" id="projects"></div>' +
-        '<p class="empty-home" id="empty-home" hidden>Nenhuma meta ainda. Criem a primeira: uma reserva, uma viagem, o que vocês quiserem juntar.</p>' +
+        '<p class="empty-home" id="empty-home" hidden>Nenhuma meta ainda. Crie a primeira: uma reserva, uma viagem, o que você quiser juntar.</p>' +
         '<button type="button" class="draw" id="new-btn">' + ICON_PLUS + '<span>Nova meta</span></button>' +
       '</section>' +
 
       '<section id="view-new" hidden>' +
         '<div class="form-card">' +
           '<label class="field">Nome da meta<input id="np-name" type="text" maxlength="40" autocomplete="off" placeholder="ex.: Viagem de férias"></label>' +
-          '<p class="field-label" id="np-goal-label">Quanto querem juntar?</p>' +
+          '<p class="field-label" id="np-goal-label">Quanto você quer juntar?</p>' +
           '<div class="chips" id="np-goals" role="group" aria-labelledby="np-goal-label"></div>' +
           '<label class="field" id="np-custom-wrap" hidden>Valor da meta, em reais<input id="np-custom" type="text" inputmode="numeric" autocomplete="off" placeholder="ex.: 2.000"></label>' +
           '<p class="field-label" id="np-end-label">Até quando?</p>' +
           '<div class="chips" id="np-ends" role="group" aria-labelledby="np-end-label"></div>' +
           '<label class="field">Data final<input id="np-end" type="date"></label>' +
-          '<p class="field-label" id="np-freq-label">Com que frequência vão depositar?</p>' +
+          '<p class="field-label" id="np-freq-label">Com que frequência você vai depositar?</p>' +
           '<div class="chips" id="np-freqs" role="group" aria-labelledby="np-freq-label"></div>' +
           '<div class="preview" id="np-preview" aria-live="polite"></div>' +
           '<p class="form-msg error" id="np-msg" role="alert" hidden></p>' +
@@ -1200,8 +1232,10 @@ h1 { overflow-wrap: anywhere; }
         '<details class="panel"><summary>Como funciona</summary><div class="panel-body" id="how"></div></details>' +
         '<details class="panel" id="settings-project"><summary>Ajustes da meta</summary><div class="panel-body">' +
           '<label class="field">Nome da meta<input id="p-name" type="text" maxlength="40" autocomplete="off"></label>' +
+          '<p id="p-people"></p>' +
           '<p id="p-plan"></p>' +
           '<button type="button" class="btn-ghost btn-danger" id="p-delete">Excluir meta</button>' +
+          '<p class="owner-note" id="p-owner-note" hidden>Só quem criou esta meta pode excluí-la.</p>' +
           '<div id="p-delete-confirm" hidden><p id="p-delete-text" class="confirm-text"></p>' +
             '<div class="row"><button type="button" class="btn-ghost btn-danger" id="p-delete-yes">Excluir</button>' +
             '<button type="button" class="btn-ghost" id="p-delete-no">Cancelar</button></div></div>' +
@@ -1223,6 +1257,8 @@ h1 { overflow-wrap: anywhere; }
           '<button type="button" class="btn-ghost btn-small btn-on-dark" id="name-cancel">Cancelar</button></div></div>' +
         '<p class="profile-line"><i class="pdot" id="sync-dot" aria-hidden="true"></i><span id="sync-line"></span></p>' +
         '<p class="profile-line profile-people" id="people-line" hidden></p>' +
+        '<p class="profile-line profile-verify" id="verify-line" hidden><span>E-mail ainda não confirmado.</span>' +
+          '<button type="button" class="link link-on-dark" id="verify-resend">Reenviar confirmação</button></p>' +
       '</div>' +
       '<h3 class="group-title">Aparência</h3>' +
       '<div class="group">' +
@@ -1257,7 +1293,8 @@ h1 { overflow-wrap: anywhere; }
 
   function byId(id) { return document.getElementById(id); }
   var els = {};
-  ['page', 'brand-logo', 'settings-btn', 'sheet', 'sheet-bg', 'sheet-close', 'avatar', 'who-name', 'home-hero', 'h-total', 'h-sub',
+  ['login-tabs', 'login-title', 'login-lead', 'signup-name-wrap', 'signup-name', 'pass-hint', 'h-kicker', 'p-people', 'p-owner-note',
+    'verify-line', 'verify-resend', 'page', 'brand-logo', 'settings-btn', 'sheet', 'sheet-bg', 'sheet-close', 'avatar', 'who-name', 'home-hero', 'h-total', 'h-sub',
     'profile', 'name-edit', 'name-form', 'name-save', 'name-cancel', 'sync-dot', 'sync-line', 'people-line', 'theme-seg', 'order-seg',
     'export-csv', 'change-pass', 'change-pass-sub',
     'h-fill', 'h-left', 'h-pct', 'h-day', 'list-title', 'mini', 'mini-back', 'mini-total', 'mini-of', 'mini-pct', 'mini-fill', 'back', 'title', 'save', 'save-text', 'banner',
@@ -1402,6 +1439,7 @@ h1 { overflow-wrap: anywhere; }
       if (st.remaining > 0 && !st.ended) { perDay += st.started ? st.perDay : st.remaining / st.days; active++; }
     });
     els.homeHero.hidden = !list.length;
+    els.hKicker.textContent = list.some(isShared) ? 'Juntos, vocês já guardaram' : 'Você já guardou';
     els.listTitle.hidden = !list.length;
     if (list.length) {
       var gp = goals ? saved0 / goals * 100 : 0;
@@ -1430,6 +1468,13 @@ h1 { overflow-wrap: anywhere; }
       pc.textContent = pctText(st);
       top.appendChild(nm);
       top.appendChild(pc);
+      var shareLine = null;
+      if (isShared(p)) {
+        var others = p.members.filter(function (u) { return !me || u !== me.uid; }).map(function (u) { return data.names[u]; }).filter(Boolean);
+        shareLine = document.createElement('span');
+        shareLine.className = 'pcard-share';
+        shareLine.textContent = others.length ? 'Com ' + joinNames(others) : 'Compartilhada';
+      }
       var tot = document.createElement('span');
       tot.className = 'pcard-total';
       rich(tot, [{ b: money(st.total) }, ' de ' + money(st.target)]);
@@ -1449,6 +1494,7 @@ h1 { overflow-wrap: anywhere; }
       foot.appendChild(f1);
       foot.appendChild(f2);
       card.appendChild(top);
+      if (shareLine) card.appendChild(shareLine);
       card.appendChild(tot);
       card.appendChild(track);
       card.appendChild(foot);
@@ -1523,7 +1569,7 @@ h1 { overflow-wrap: anywhere; }
     if (st.remaining <= 0) {
       els.s2Label.textContent = 'Cartela';
       els.s2Value.textContent = 'Completa!';
-      els.s2Sub.textContent = 'parabéns aos dois';
+      els.s2Sub.textContent = isShared(p) ? 'parabéns a todos' : 'parabéns!';
     } else if (!st.started) {
       els.s2Label.textContent = 'Começa em';
       els.s2Value.textContent = st.startsIn + (st.startsIn === 1 ? ' dia' : ' dias');
@@ -1550,21 +1596,35 @@ h1 { overflow-wrap: anywhere; }
       var perDay = st.started ? st.perDay : st.remaining / st.days;
       els.s3Label.textContent = 'Por dia';
       els.s3Value.textContent = moneyC(perDay);
-      els.s3Sub.textContent = moneyC(perDay / 2) + ' para cada um';
+      var people = isShared(p) ? p.members.length : 1;
+      els.s3Sub.textContent = people > 1 ? moneyC(perDay / people) + ' para cada um' : 'até ' + brDate(p.end);
     }
     applyFilter(st.count, st.n);
     if (document.activeElement !== els.pName) els.pName.value = p.name;
     var f = freqInfo(p.freq);
     var plan = 'Meta de ' + money(p.goal) + ', de ' + brDate(p.start) + ' a ' + brDate(p.end) + ', ' +
       (p.freq === 'seq' ? 'com quadradinhos em sequência' : 'com ' + f.each) + ': ' + st.n + ' quadradinhos, de ' +
-      money(p.values[0]) + ' a ' + money(p.values[p.values.length - 1]) + '. Para mudar o valor ou o prazo, criem uma meta nova.';
+      money(p.values[0]) + ' a ' + money(p.values[p.values.length - 1]) + '. Para mudar o valor ou o prazo, crie uma meta nova.';
     els.pPlan.textContent = plan;
+    if (mode === 'cloud' && p.members.length) {
+      var names = p.members.map(function (u) {
+        var nm = u === (me && me.uid) ? 'você' : (data.names[u] || 'outra pessoa');
+        return u === p.owner ? nm + ' (quem criou)' : nm;
+      });
+      els.pPeople.textContent = p.members.length > 1 ? 'Pessoas nesta meta: ' + joinNames(names) + '.' : 'Só você vê esta meta.';
+      els.pPeople.hidden = false;
+    } else {
+      els.pPeople.hidden = true;
+    }
+    var owner = isOwner(p);
+    if (els.pDeleteConfirm.hidden) els.pDelete.hidden = !owner;
+    els.pOwnerNote.hidden = owner;
     var how = [
-      'Cada quadradinho vale o número escrito nele, em reais. Escolham um por vez, na ordem que quiserem: nos dias apertados, os pequenos; perto do pagamento, os grandes. Na dúvida, usem o botão de sortear.',
-      'Depositou? Toquem no quadradinho para marcar. Se tocarem no errado, é só tocar de novo para desmarcar.',
+      'Cada quadradinho vale o número escrito nele, em reais. Escolha um por vez, na ordem que quiser: nos dias apertados, os pequenos; perto do pagamento, os grandes. Na dúvida, use o botão de sortear.',
+      'Depositou? Toque no quadradinho para marcar. Se tocar no errado, é só tocar de novo para desmarcar.',
       'O resumo mostra quanto precisa por dia para chegar à meta até ' + brDate(p.end) + ', recalculado a cada depósito.'
     ];
-    if (mode === 'cloud') how.push('Vocês dois veem as mesmas metas: quando um marca, o outro vê na hora.');
+    if (isShared(p)) how.push('Nesta meta compartilhada, quando alguém marca, os outros veem na hora.');
     para(els.how, how);
   }
   function applyFilter(count, n) {
@@ -1573,7 +1633,7 @@ h1 { overflow-wrap: anywhere; }
       b.setAttribute('aria-pressed', b.getAttribute('data-filter') === filter ? 'true' : 'false');
     });
     var msg = '';
-    if (filter === 'done' && count === 0) msg = 'Nenhum depósito marcado ainda. Quando depositarem, toquem no quadradinho do valor.';
+    if (filter === 'done' && count === 0) msg = 'Nenhum depósito marcado ainda. Quando depositar, toque no quadradinho do valor.';
     if (filter === 'todo' && count >= n) msg = 'Não falta nenhum. Cartela completa!';
     els.empty.textContent = msg;
     els.empty.hidden = !msg;
@@ -1587,9 +1647,9 @@ h1 { overflow-wrap: anywhere; }
     if (mode === 'local') {
       t = storageOK
         ? 'Tudo é salvo sozinho, na hora, neste navegador e neste aparelho, e só se perde se os dados do navegador forem apagados. Em outro navegador ou aparelho, as metas começam do zero.'
-        : 'Este navegador não está guardando as marcações. Abram o arquivo no Chrome, no Edge ou no Safari. Enquanto isso, baixem uma cópia antes de fechar, para não perder nada.';
+        : 'Este navegador não está guardando as marcações. Abra o arquivo no Chrome, no Edge ou no Safari. Enquanto isso, baixe uma cópia antes de fechar, para não perder nada.';
     } else {
-      t = 'As metas ficam salvas no Firebase e aparecem na hora para vocês dois. Sem internet, as marcações ficam guardadas neste aparelho e sobem sozinhas quando a conexão voltar.';
+      t = 'As metas ficam salvas no Firebase. Cada pessoa vê só as próprias metas e as compartilhadas com ela. Sem internet, as marcações ficam guardadas neste aparelho e sobem sozinhas quando a conexão voltar.';
     }
     els.saveWhere.textContent = t;
     els.account.hidden = !(mode === 'cloud' && me);
@@ -1605,7 +1665,8 @@ h1 { overflow-wrap: anywhere; }
         .map(function (x) { return x.name; })
         .filter(function (n, i, arr) { return arr.indexOf(n) === i; });
       if (people.indexOf(myName) === -1) people.unshift(myName);
-      els.peopleLine.hidden = false;
+      els.peopleLine.hidden = true;
+      els.verifyLine.hidden = !!me.verified;
       els.peopleLine.textContent = people.length > 1
         ? people.slice(0, -1).join(', ') + ' e ' + people[people.length - 1] + ' usam estas metas.'
         : 'Por enquanto, só você usa estas metas.';
@@ -1614,6 +1675,7 @@ h1 { overflow-wrap: anywhere; }
       els.accountText.textContent = mode === 'local' ? 'Sem conta conectada' : '';
       els.avatar.textContent = 'G';
       els.peopleLine.hidden = true;
+      els.verifyLine.hidden = true;
     }
     els.nameEdit.hidden = !(mode === 'cloud' && me && els.nameForm.hidden);
     var sync = syncText();
@@ -1708,11 +1770,11 @@ h1 { overflow-wrap: anywhere; }
   }
   function npProblem() {
     var g = npGoal();
-    if (!g) return 'Escolham quanto querem juntar.';
+    if (!g) return 'Escolha quanto quer juntar.';
     if (g < 10) return 'A meta precisa ser de pelo menos R$ 10.';
     if (g > MAX_GOAL) return 'A meta pode ser de até ' + money(MAX_GOAL) + '.';
     var e = parseYMD(np.end);
-    if (!e) return 'Escolham até quando.';
+    if (!e) return 'Escolha até quando.';
     if (e < today0()) return 'A data final precisa ser hoje ou depois.';
     if (e > addMonths(today0(), 60)) return 'O prazo pode ser de até 5 anos.';
     return '';
@@ -1731,7 +1793,7 @@ h1 { overflow-wrap: anywhere; }
     });
     var problem = npProblem();
     if (problem) {
-      para(els.npPreview, [problem === 'Escolham quanto querem juntar.' ? 'Escolham quanto querem juntar e até quando. O cálculo aparece aqui.' : problem]);
+      para(els.npPreview, [problem === 'Escolha quanto quer juntar.' ? 'Escolha quanto quer juntar e até quando. O cálculo aparece aqui.' : problem]);
       return;
     }
     var g = npGoal();
@@ -1748,8 +1810,8 @@ h1 { overflow-wrap: anywhere; }
       lines.push(['São ' + days + (days === 1 ? ' dia' : ' dias') + ' até ' + brDate(np.end) + '. Com ' + freqInfo(np.freq).each + ', ficam ',
         { b: n + (n === 1 ? ' quadradinho' : ' quadradinhos') }, ', de ' + money(values[0]) + ' a ' + money(values[n - 1]) + '.']);
     }
-    lines.push(['Para chegar a ' + money(g) + ', guardem uns ', { b: moneyC(perDay) + ' por dia' }, ', ' + moneyC(perDay * 7) + ' por semana ou ' +
-      money(perDay * 30.44) + ' por mês, ou seja, ' + money(perDay * 30.44 / 2) + ' por mês para cada um.']);
+    lines.push(['Para chegar a ' + money(g) + ', guarde uns ', { b: moneyC(perDay) + ' por dia' }, ', ' + moneyC(perDay * 7) + ' por semana ou ' +
+      money(perDay * 30.44) + ' por mês.']);
     para(els.npPreview, lines);
   }
 
@@ -1782,7 +1844,7 @@ h1 { overflow-wrap: anywhere; }
     } catch (e) {
       storageOK = false;
     }
-    showBanner(storageOK ? '' : 'Este navegador não está guardando as marcações. Abram o arquivo no Chrome, no Edge ou no Safari, e não na pré-visualização de arquivos do celular.');
+    showBanner(storageOK ? '' : 'Este navegador não está guardando as marcações. Abra o arquivo no Chrome, no Edge ou no Safari, e não na pré-visualização de arquivos do celular.');
     return storageOK;
   }
   function startLocal() {
@@ -1802,7 +1864,7 @@ h1 { overflow-wrap: anywhere; }
         if (Object.keys(data.projects).length) saveLocal();
       }
     }
-    showBanner(storageOK ? '' : 'Este navegador não está guardando as marcações. Abram o arquivo no Chrome, no Edge ou no Safari, e não na pré-visualização de arquivos do celular.');
+    showBanner(storageOK ? '' : 'Este navegador não está guardando as marcações. Abra o arquivo no Chrome, no Edge ou no Safari, e não na pré-visualização de arquivos do celular.');
     route();
   }
 
@@ -1833,10 +1895,13 @@ h1 { overflow-wrap: anywhere; }
   function authMessage(code) {
     code = String(code || '');
     if (/invalid-credential|wrong-password|user-not-found|invalid-login-credentials/.test(code)) return 'E-mail ou senha incorretos.';
-    if (/invalid-email/.test(code)) return 'Esse e-mail não parece válido. Confiram se foi digitado certo.';
-    if (/missing-password/.test(code)) return 'Digitem a senha.';
-    if (/too-many-requests/.test(code)) return 'Muitas tentativas seguidas. Esperem alguns minutos ou usem “Esqueci minha senha”.';
-    if (/network-request-failed/.test(code)) return 'Sem internet. Conectem-se para entrar.';
+    if (/email-already-in-use/.test(code)) return 'Já existe uma conta com esse e-mail. Use “Entrar” ou “Esqueci minha senha”.';
+    if (/weak-password/.test(code)) return 'Senha fraca. Use pelo menos 6 caracteres.';
+    if (/admin-restricted-operation/.test(code)) return 'A criação de contas está desligada no Firebase.';
+    if (/invalid-email/.test(code)) return 'Esse e-mail não parece válido. Confira se foi digitado certo.';
+    if (/missing-password/.test(code)) return 'Digite a senha.';
+    if (/too-many-requests/.test(code)) return 'Muitas tentativas seguidas. Espere alguns minutos ou use “Esqueci minha senha”.';
+    if (/network-request-failed/.test(code)) return 'Sem internet. Conecte-se para entrar.';
     if (/user-disabled/.test(code)) return 'Esta conta foi desativada no Firebase.';
     if (/operation-not-allowed/.test(code)) return 'O login com e-mail e senha ainda não foi ativado no Firebase.';
     if (/api-key|invalid-api-key|app-not-authorized/.test(code)) return 'A configuração do Firebase neste arquivo está incorreta.';
@@ -1854,14 +1919,14 @@ h1 { overflow-wrap: anywhere; }
   function denied() {
     cloudStatus = 'denied';
     ready = false;
-    showBanner('Esta conta entrou, mas não tem permissão para usar as metas. Confiram se o e-mail dela está nas regras do Firestore.');
+    showBanner('O Firebase recusou o acesso desta conta às metas. Se você cuida do app, confira se as regras da versão 3.0 foram publicadas.');
     render();
   }
   function onWriteError(err) {
     var code = err && err.code ? String(err.code) : '';
     if (code === 'permission-denied') { denied(); return; }
     if (code === 'not-found') return;
-    toast('Não foi possível salvar agora' + (code ? ' (' + code + ')' : '') + '. Tentem de novo em instantes.');
+    toast('Não foi possível salvar agora' + (code ? ' (' + code + ')' : '') + '. Tente de novo em instantes.');
   }
   function docRef(id) { return fb.fsM.doc(fb.db, COL, id); }
   function cloudWrite(fn) {
@@ -1913,19 +1978,13 @@ h1 { overflow-wrap: anywhere; }
   function onSnap(qs) {
     lastMeta = qs.metadata;
     if (!qs.metadata.fromCache && !qs.metadata.hasPendingWrites) lastServerAt = Date.now();
-    var next = { v: 2, projects: {}, names: {}, updatedAt: Date.now() };
-    var legacyIds = [];
-    var legacyNames = {};
+    var next = { v: 2, projects: {}, names: data.names || {}, updatedAt: Date.now() };
     qs.docs.forEach(function (d) {
-      var v = d.data();
-      if (d.id === PEOPLE) { cleanNames(v && v.names, next.names); return; }
       if (!validId(d.id)) return;
-      var p = normalizeProject(d.id, v);
-      if (!p) return;
+      var p = normalizeProject(d.id, d.data());
+      if (!p || p.legacy) return;
       next.projects[d.id] = p;
-      if (p.legacy) { legacyIds.push(d.id); cleanNames(v && v.names, legacyNames); }
     });
-    Object.keys(legacyNames).forEach(function (uid) { if (!next.names[uid]) next.names[uid] = legacyNames[uid]; });
     var added = firstSnap ? [] : announce(data, next);
     firstSnap = false;
     data = next;
@@ -1943,9 +2002,10 @@ h1 { overflow-wrap: anywhere; }
         tile.classList.add('pop');
       });
     }
+    fetchNames(next);
     if (!qs.metadata.fromCache && !gotServer) {
       gotServer = true;
-      afterFirstServerSnapshot(legacyIds, legacyNames);
+      afterFirstServerSnapshot();
     }
   }
   function onSnapError(err) {
@@ -1954,24 +2014,86 @@ h1 { overflow-wrap: anywhere; }
     if (code === 'permission-denied') { denied(); return; }
     cloudStatus = 'error';
     ready = false;
-    showBanner('Não foi possível ler as metas agora' + (code ? ' (' + code + ')' : '') + '. Fechem e abram de novo daqui a pouco.');
+    showBanner('Não foi possível ler as metas agora' + (code ? ' (' + code + ')' : '') + '. Feche e abra de novo daqui a pouco.');
     render();
   }
-  function afterFirstServerSnapshot(legacyIds, legacyNames) {
-    legacyIds.forEach(function (id) {
-      var p = data.projects[id];
-      cloudWrite(function (fs) {
-        return fs.updateDoc(docRef(id), 'v', 2, 'name', p.name, 'goal', p.goal, 'start', p.start, 'end', p.end, 'freq', p.freq,
-          'values', p.values.slice(), 'createdAt', 1, 'updatedAt', fs.serverTimestamp());
+  function userRef(uid) { return fb.fsM.doc(fb.db, USERS, uid); }
+  var nameAsked = {};
+  function fetchNames(d) {
+    if (!fb || !me) return;
+    var now = Date.now();
+    Object.keys(d.projects).forEach(function (id) {
+      (d.projects[id].members || []).forEach(function (uid) {
+        if (uid === me.uid || d.names[uid] || (nameAsked[uid] && now - nameAsked[uid] < 60000)) return;
+        nameAsked[uid] = now;
+        fb.fsM.getDoc(userRef(uid)).then(function (snap) {
+          var nm = snap.exists() ? snap.data().name : '';
+          if (typeof nm === 'string' && nm.trim()) { data.names[uid] = nm.trim().slice(0, 30); render(); }
+        }, function () { /* tenta de novo mais tarde */ });
       });
     });
-    var names = {};
-    Object.keys(legacyNames).forEach(function (uid) { if (!data.names[uid]) names[uid] = legacyNames[uid]; });
-    if (!data.names[me.uid] && !names[me.uid]) names[me.uid] = defaultName(me.email);
-    if (Object.keys(names).length) {
-      cloudWrite(function (fs) { return fs.setDoc(docRef(PEOPLE), { names: names }, { merge: true }); });
+  }
+  function ensureProfile(oldNames) {
+    var fs = fb.fsM;
+    return fs.getDoc(userRef(me.uid)).then(function (snap) {
+      var cur = snap.exists() ? snap.data().name : '';
+      if (typeof cur === 'string' && cur.trim()) return null;
+      var u = fb.auth.currentUser;
+      var name = (signupName || (oldNames && oldNames[me.uid]) || (u && u.displayName) || defaultName(me.email)).slice(0, 30);
+      signupName = '';
+      data.names[me.uid] = name;
+      render();
+      return fs.setDoc(userRef(me.uid), { name: name, updatedAt: fs.serverTimestamp() }, { merge: true });
+    }).catch(function () { /* o perfil é criado na próxima vez */ });
+  }
+  // Metas da versão 2 (coleção antiga): quem estava na lista antiga traz as metas para a versão 3.
+  function claimOrCreate(p) {
+    var fs = fb.fsM;
+    var ref = docRef(p.id);
+    recent['p:' + p.id] = Date.now() + 20000;
+    function claim() { return fs.updateDoc(ref, 'members', fs.arrayUnion(me.uid)); }
+    function create() {
+      var d = projectDoc(p, me.uid);
+      d.owner = me.uid;
+      d.members = [me.uid];
+      d.fromV2 = true;
+      d.createdAt = p.createdAt || 1;
+      d.updatedAt = fs.serverTimestamp();
+      return fs.setDoc(ref, d);
     }
-    offerLegacyMarks();
+    return claim().catch(function () { return create(); }).catch(function () { return claim(); })
+      .then(function () { return true; }, function () { return false; });
+  }
+  function migrateV2() {
+    var flag = MIGRATED_KEY + me.uid;
+    try { if (window.localStorage.getItem(flag)) return Promise.resolve({}); } catch (e) { /* segue */ }
+    var fs = fb.fsM;
+    return fs.getDocsFromServer(fs.collection(fb.db, OLD_COL)).then(function (qs) {
+      var oldNames = {};
+      var olds = [];
+      qs.docs.forEach(function (d) {
+        if (d.id === PEOPLE) { cleanNames(d.data() && d.data().names, oldNames); return; }
+        if (!validId(d.id)) return;
+        var op = normalizeProject(d.id, d.data());
+        if (op) { if (op.legacy) op.createdAt = 1; op.legacy = false; olds.push(op); }
+      });
+      Object.keys(oldNames).forEach(function (uid) { if (!data.names[uid]) data.names[uid] = oldNames[uid]; });
+      return Promise.all(olds.map(claimOrCreate)).then(function (res) {
+        var failed = res.filter(function (ok) { return !ok; }).length;
+        if (!failed) { try { window.localStorage.setItem(flag, '1'); } catch (e) { /* sem registro */ } }
+        if (failed) toast('Algumas metas antigas não vieram agora. O app tenta de novo na próxima vez que abrir.');
+        else if (olds.length) toast(olds.length + (olds.length === 1 ? ' meta da versão anterior foi trazida.' : ' metas da versão anterior foram trazidas.'));
+        return oldNames;
+      });
+    }, function (err) {
+      var code = err && err.code ? String(err.code) : '';
+      if (code === 'permission-denied') { try { window.localStorage.setItem(flag, '1'); } catch (e) { /* sem registro */ } }
+      return {};
+    });
+  }
+  function afterFirstServerSnapshot() {
+    migrateV2().then(function (oldNames) { return ensureProfile(oldNames); })
+      .then(function () { offerLegacyMarks(); }, function () { offerLegacyMarks(); });
   }
   function offerLegacyMarks() {
     var flag = SENT_KEY + me.uid;
@@ -1992,7 +2114,7 @@ h1 { overflow-wrap: anywhere; }
     var total = extra.reduce(function (a, k) { return a + (local.values[k - 1] || 0); }, 0);
     legacyOffer = { local: local, extra: extra };
     els.migrateText.textContent = 'Este aparelho tem ' + extra.length + (extra.length === 1 ? ' depósito marcado' : ' depósitos marcados') +
-      ' no desafio de 2027 antes da sincronização, somando ' + money(total) + '. Enviar para a meta de vocês?';
+      ' no desafio de 2027 antes da sincronização, somando ' + money(total) + '. Enviar para a sua conta?';
     els.migrate.hidden = false;
   }
   function closeMigrate() {
@@ -2000,10 +2122,14 @@ h1 { overflow-wrap: anywhere; }
     legacyOffer = null;
     try { window.localStorage.setItem(SENT_KEY + me.uid, '1'); } catch (e) { /* sem registro */ }
   }
+  var unsubProfile = null;
+  var signupName = '';
   function onUser(user) {
     if (unsub) { unsub(); unsub = null; }
+    if (unsubProfile) { unsubProfile(); unsubProfile = null; }
     var hadUser = !!me;
-    me = user ? { uid: user.uid, email: user.email || '' } : null;
+    me = user ? { uid: user.uid, email: user.email || '', verified: !!user.emailVerified } : null;
+    nameAsked = {};
     els.migrate.hidden = true;
     if (!me) {
       ready = false;
@@ -2026,13 +2152,19 @@ h1 { overflow-wrap: anywhere; }
     cloudStatus = navigator.onLine ? 'loading' : 'offline';
     showBanner('');
     render();
-    unsub = fb.fsM.onSnapshot(fb.fsM.collection(fb.db, COL), { includeMetadataChanges: true }, onSnap, onSnapError);
+    var fs = fb.fsM;
+    unsub = fs.onSnapshot(fs.query(fs.collection(fb.db, COL), fs.where('members', 'array-contains', me.uid)),
+      { includeMetadataChanges: true }, onSnap, onSnapError);
+    unsubProfile = fs.onSnapshot(userRef(me.uid), function (snap) {
+      var nm = snap.exists() ? snap.data().name : '';
+      if (typeof nm === 'string' && nm.trim()) { data.names[me.uid] = nm.trim().slice(0, 30); render(); }
+    }, function () { /* sem perfil por enquanto */ });
   }
   function sdkFailed() {
     sdkLoading = false;
     cloudStatus = 'error';
     ready = false;
-    showBanner('Sem conexão com o Firebase. As metas aparecem como estavam da última vez. Para marcar, conectem-se à internet.');
+    showBanner('Sem conexão com o Firebase. As metas aparecem como estavam da última vez. Para marcar, conecte-se à internet.');
     render();
   }
   function loadSdk() {
@@ -2075,10 +2207,10 @@ h1 { overflow-wrap: anywhere; }
     els.drawLabel.textContent = on ? 'Sortear outro' : 'Sortear o depósito de hoje';
   }
   function blockedMessage() {
-    if (mode === 'cloud' && !me) return 'Entrem na conta para continuar.';
+    if (mode === 'cloud' && !me) return 'Entre na conta para continuar.';
     if (cloudStatus === 'denied') return 'Esta conta não tem permissão para usar as metas.';
-    if (cloudStatus === 'error') return 'Sem conexão com o Firebase. Conectem-se à internet para continuar.';
-    return 'Conectando às metas. Tentem de novo em instantes.';
+    if (cloudStatus === 'error') return 'Sem conexão com o Firebase. Conecte-se à internet para continuar.';
+    return 'Conectando às metas. Tente de novo em instantes.';
   }
   function saved(msg) {
     toast(msg + (mode === 'local' && storageOK ? ' Salvo.' : ''));
@@ -2140,7 +2272,7 @@ h1 { overflow-wrap: anywhere; }
     if (creating) return;
     if (!canEdit()) { toast(blockedMessage()); return; }
     var name = els.npName.value.trim().slice(0, 40);
-    var problem = !name ? 'Deem um nome à meta.' : npProblem();
+    var problem = !name ? 'Dê um nome à meta.' : npProblem();
     if (problem) {
       els.npMsg.textContent = problem;
       els.npMsg.hidden = false;
@@ -2152,13 +2284,16 @@ h1 { overflow-wrap: anywhere; }
     var start = ymd(today0());
     var p = normalizeProject(newId(), {
       name: name, goal: g, start: start, end: np.end, freq: np.freq,
-      values: planValues(g, np.freq, start, np.end), marks: {}, createdAt: Date.now()
+      values: planValues(g, np.freq, start, np.end), marks: {}, createdAt: Date.now(),
+      owner: me ? me.uid : '', members: me ? [me.uid] : []
     });
     recent['p:' + p.id] = Date.now();
     data.projects[p.id] = p;
     if (mode === 'local') saveLocal();
     else cloudWrite(function (fs) {
       var d = projectDoc(p, me.uid);
+      d.owner = me.uid;
+      d.members = [me.uid];
       d.updatedAt = fs.serverTimestamp();
       return fs.setDoc(docRef(p.id), d);
     });
@@ -2226,7 +2361,7 @@ h1 { overflow-wrap: anywhere; }
     if (rest.length > 1 && choice === pick) choice = rest[(rest.indexOf(choice) + 1) % rest.length];
     pick = choice;
     if (filter === 'done') filter = 'all';
-    rich(els.drawResult, ['Hoje: ', { b: money(p.values[choice - 1]) }, '. Depositou? Toquem no quadradinho para marcar.']);
+    rich(els.drawResult, ['Hoje: ', { b: money(p.values[choice - 1]) }, '. Depositou? Toque no quadradinho para marcar.']);
     setPickLabel(true);
     render();
     var tile = els.grid.children[choice - 1];
@@ -2261,7 +2396,7 @@ h1 { overflow-wrap: anywhere; }
     var p = current();
     if (!p) return;
     if (!canEdit()) { toast(blockedMessage()); return; }
-    els.pDeleteText.textContent = 'Excluir “' + p.name + '”' + (mode === 'cloud' ? ' para vocês dois' : '') +
+    els.pDeleteText.textContent = 'Excluir “' + p.name + '”' + (isShared(p) ? ' para todos que participam dela' : '') +
       '? As marcações dessa meta somem e não dá para desfazer.';
     els.pDeleteConfirm.hidden = false;
     els.pDelete.hidden = true;
@@ -2293,10 +2428,10 @@ h1 { overflow-wrap: anywhere; }
   function saveName() {
     if (!me || !canEdit()) { toast(blockedMessage()); return; }
     var v = els.myName.value.trim().slice(0, 30);
-    if (!v) { toast('Digitem um nome.'); return; }
+    if (!v) { toast('Digite um nome.'); return; }
     if (v !== (data.names[me.uid] || '')) {
       data.names[me.uid] = v;
-      cloudWrite(function (fs) { return fs.setDoc(docRef(PEOPLE), { names: obj(me.uid, v) }, { merge: true }); });
+      cloudWrite(function (fs) { return fs.setDoc(userRef(me.uid), { name: v, updatedAt: fs.serverTimestamp() }, { merge: true }); });
       toast('Nome salvo.');
     }
     closeNameForm();
@@ -2333,7 +2468,7 @@ h1 { overflow-wrap: anywhere; }
   els.changePass.addEventListener('click', function () {
     if (!fb || !me) return;
     fb.authM.sendPasswordResetEmail(fb.auth, me.email).then(function () {
-      toast('Enviamos para ' + me.email + ' um link para criar uma senha nova. Confiram também o spam.');
+      toast('Enviamos para ' + me.email + ' um link para criar uma senha nova. Confira também o spam.');
     }, function (err) {
       toast(authMessage(err && err.code));
     });
@@ -2399,8 +2534,8 @@ h1 { overflow-wrap: anywhere; }
   }
   els.backup.addEventListener('click', function () {
     deliverFile(buildDocument(data), backupName(), 'text/html', 'Cópia das metas',
-      'Cópia enviada. Para usar, abram “Restaurar cópia” nos ajustes.',
-      'Cópia baixada. Para usar, abram “Restaurar cópia” nos ajustes.');
+      'Cópia enviada. Para usar, abra “Restaurar cópia” nos ajustes.',
+      'Cópia baixada. Para usar, abra “Restaurar cópia” nos ajustes.');
   });
   function csvCell(v) {
     v = String(v);
@@ -2451,7 +2586,7 @@ h1 { overflow-wrap: anywhere; }
     reader.onload = function () {
       var imported = parseCopy(String(reader.result || ''));
       if (!imported) {
-        toast('Esse arquivo não é uma cópia das metas. Escolham o arquivo baixado em “Baixar cópia”.');
+        toast('Esse arquivo não é uma cópia das metas. Escolha o arquivo baixado em “Baixar cópia”.');
         return;
       }
       var ps = sortedProjects(imported);
@@ -2460,10 +2595,10 @@ h1 { overflow-wrap: anywhere; }
       var when = imported.updatedAt ? ' de ' + dateBR(imported.updatedAt) : '';
       els.restoreText.textContent = 'A cópia' + when + ' tem ' + ps.length + (ps.length === 1 ? ' meta' : ' metas') + ' (' +
         ps.map(function (p) { return p.name; }).join(', ') + '), com ' + marks + (marks === 1 ? ' depósito marcado' : ' depósitos marcados') + '. ' +
-        (mode === 'cloud' ? 'Substituir as metas de vocês dois pelas da cópia?' : 'Substituir as metas deste aparelho pelas da cópia?');
+        (mode === 'cloud' ? 'Adicionar essas metas à sua conta? Elas entram como metas novas, só suas, e nada é apagado.' : 'Substituir as metas deste aparelho pelas da cópia?');
       els.restoreConfirm.hidden = false;
     };
-    reader.onerror = function () { toast('Não foi possível ler esse arquivo. Tentem escolher de novo.'); };
+    reader.onerror = function () { toast('Não foi possível ler esse arquivo. Tente escolher de novo.'); };
     reader.readAsText(f);
   });
   els.restoreYes.addEventListener('click', function () {
@@ -2478,23 +2613,28 @@ h1 { overflow-wrap: anywhere; }
       data.projects = imported.projects;
       saveLocal();
     } else {
-      data.projects = imported.projects;
-      Object.keys(imported.projects).forEach(function (id) {
-        var p = imported.projects[id];
+      Object.keys(imported.projects).forEach(function (oldId) {
+        var p = imported.projects[oldId];
+        var id = newId();
+        p.id = id;
+        p.owner = me.uid;
+        p.members = [me.uid];
+        p.fromV2 = false;
+        recent['p:' + id] = Date.now();
+        data.projects[id] = p;
         cloudWrite(function (fs) {
           var d = projectDoc(p, me.uid);
+          d.owner = me.uid;
+          d.members = [me.uid];
           d.updatedAt = fs.serverTimestamp();
           return fs.setDoc(docRef(id), d);
         });
-      });
-      Object.keys(old).forEach(function (id) {
-        if (!imported.projects[id]) cloudWrite(function (fs) { return fs.deleteDoc(docRef(id)); });
       });
     }
     closeSheet();
     go('');
     render();
-    saved('Cópia restaurada.');
+    saved(mode === 'cloud' ? 'Metas da cópia adicionadas.' : 'Cópia restaurada.');
   });
   els.restoreNo.addEventListener('click', function () {
     pendingImport = null;
@@ -2521,51 +2661,102 @@ h1 { overflow-wrap: anywhere; }
         return fs.updateDoc.apply(null, args);
       });
     } else {
+      var lid = newId();
+      local.id = lid;
       local.legacy = false;
       local.createdAt = 1;
+      local.owner = me.uid;
+      local.members = [me.uid];
       Object.keys(local.marks).forEach(function (k) { local.who[k] = me.uid; });
-      data.projects['2027'] = local;
-      recent['p:2027'] = Date.now();
+      data.projects[lid] = local;
+      recent['p:' + lid] = Date.now();
       cloudWrite(function (fs) {
         var d = projectDoc(local, me.uid);
+        d.owner = me.uid;
+        d.members = [me.uid];
         d.updatedAt = fs.serverTimestamp();
-        return fs.setDoc(docRef('2027'), d);
+        return fs.setDoc(docRef(lid), d);
       });
     }
     var n = extra.length;
     closeMigrate();
     render();
-    toast(n + (n === 1 ? ' depósito enviado' : ' depósitos enviados') + ' para a meta de vocês.');
+    toast(n + (n === 1 ? ' depósito enviado' : ' depósitos enviados') + ' para a sua conta.');
   });
   els.migrateNo.addEventListener('click', function () {
     closeMigrate();
     toast('Ok, as marcações antigas deste aparelho ficaram de fora.');
   });
 
+  var loginMode = 'in';
+  function setLoginMode(m) {
+    loginMode = m;
+    var up = m === 'up';
+    Array.prototype.forEach.call(els.loginTabs.children, function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-m') === m ? 'true' : 'false'); });
+    els.loginTitle.textContent = up ? 'Criar sua conta' : 'Entrar no Goals';
+    els.loginLead.textContent = up
+      ? 'Crie sua conta com nome, e-mail e senha. Suas metas ficam visíveis só para você.'
+      : 'Entre com seu e-mail e senha. Cada pessoa vê só as próprias metas e as que forem compartilhadas com ela.';
+    els.signupNameWrap.hidden = !up;
+    els.passHint.hidden = !up;
+    els.loginPass.setAttribute('autocomplete', up ? 'new-password' : 'current-password');
+    els.loginBtn.textContent = up ? 'Criar conta' : 'Entrar';
+    els.loginReset.hidden = up;
+    showLoginMsg('', false);
+  }
+  els.loginTabs.addEventListener('click', function (e) {
+    var b = e.target.closest ? e.target.closest('button') : null;
+    if (b) setLoginMode(b.getAttribute('data-m'));
+  });
   els.loginForm.addEventListener('submit', function (e) {
     e.preventDefault();
-    if (!fb) { showLoginMsg('Conectando ao Firebase. Tentem de novo em instantes.', true); loadSdk(); return; }
+    if (!fb) { showLoginMsg('Conectando ao Firebase. Tente de novo em instantes.', true); loadSdk(); return; }
+    var up = loginMode === 'up';
     var email = els.loginEmail.value.trim();
     var pass = els.loginPass.value;
-    if (!email) { showLoginMsg('Digitem o e-mail.', true); return; }
-    if (!pass) { showLoginMsg('Digitem a senha.', true); return; }
+    var name = els.signupName.value.trim().slice(0, 30);
+    if (up && !name) { showLoginMsg('Digite seu nome.', true); return; }
+    if (!email) { showLoginMsg('Digite o e-mail.', true); return; }
+    if (!pass) { showLoginMsg('Digite a senha.', true); return; }
+    if (up && pass.length < 6) { showLoginMsg('A senha precisa ter pelo menos 6 caracteres.', true); return; }
     els.loginBtn.disabled = true;
-    els.loginBtn.textContent = 'Entrando…';
-    fb.authM.signInWithEmailAndPassword(fb.auth, email, pass).then(function () {
+    els.loginBtn.textContent = up ? 'Criando conta…' : 'Entrando…';
+    var job;
+    if (up) {
+      signupName = name;
+      job = fb.authM.createUserWithEmailAndPassword(fb.auth, email, pass).then(function (cred) {
+        try { fb.authM.updateProfile(cred.user, { displayName: name }).catch(function () {}); } catch (err) { /* segue sem nome no login */ }
+        return fb.authM.sendEmailVerification(cred.user).then(function () {
+          toast('Conta criada! Enviamos um link de confirmação para ' + email + '.');
+        }, function () { toast('Conta criada!'); });
+      });
+    } else {
+      job = fb.authM.signInWithEmailAndPassword(fb.auth, email, pass);
+    }
+    job.then(function () {
       els.loginPass.value = '';
+      els.signupName.value = '';
     }, function (err) {
+      if (up) signupName = '';
       showLoginMsg(authMessage(err && err.code), true);
     }).then(function () {
       els.loginBtn.disabled = false;
-      els.loginBtn.textContent = 'Entrar';
+      els.loginBtn.textContent = loginMode === 'up' ? 'Criar conta' : 'Entrar';
     });
+  });
+  els.verifyResend.addEventListener('click', function () {
+    var u = fb && fb.auth.currentUser;
+    if (!u) return;
+    fb.authM.sendEmailVerification(u).then(function () {
+      toast('Enviamos um novo link de confirmação para ' + u.email + '.');
+    }, function (err) { toast(authMessage(err && err.code)); });
   });
   els.loginReset.addEventListener('click', function () {
     var email = els.loginEmail.value.trim();
-    if (!email) { showLoginMsg('Digitem o e-mail acima e toquem de novo em “Esqueci minha senha”.', true); return; }
-    if (!fb) { showLoginMsg('Conectando ao Firebase. Tentem de novo em instantes.', true); loadSdk(); return; }
+    if (!email) { showLoginMsg('Digite o e-mail acima e toque de novo em “Esqueci minha senha”.', true); return; }
+    if (!fb) { showLoginMsg('Conectando ao Firebase. Tente de novo em instantes.', true); loadSdk(); return; }
     fb.authM.sendPasswordResetEmail(fb.auth, email).then(function () {
-      showLoginMsg('Se esse e-mail tiver conta, chega um link para criar uma senha nova. Confiram também o spam.', false);
+      showLoginMsg('Se esse e-mail tiver conta, chega um link para criar uma senha nova. Confira também o spam.', false);
     }, function (err) {
       showLoginMsg(authMessage(err && err.code), true);
     });
@@ -2573,13 +2764,17 @@ h1 { overflow-wrap: anywhere; }
   els.logout.addEventListener('click', function () {
     if (!fb) return;
     closeSheet();
-    fb.authM.signOut(fb.auth).then(function () { go(''); toast('Vocês saíram da conta neste aparelho.'); });
+    fb.authM.signOut(fb.auth).then(function () { go(''); toast('Você saiu da conta neste aparelho.'); });
   });
 
   var sheetOpen = false;
   var sheetTimer = null;
   function openSheet() {
     if (sheetOpen) return;
+    var cu = fb && fb.auth && fb.auth.currentUser;
+    if (cu && me && !me.verified && cu.reload) {
+      cu.reload().then(function () { if (me) { me.verified = !!fb.auth.currentUser.emailVerified; renderSettings(); } }, function () {});
+    }
     sheetOpen = true;
     clearTimeout(sheetTimer);
     renderSettings();
