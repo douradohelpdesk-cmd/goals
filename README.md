@@ -5,7 +5,8 @@ Metas de depósito com quadradinhos, para usar sozinho ou junto com outras pesso
 ## Como usar
 
 - Entre com seu e-mail e senha, ou toque em “Criar conta”. Cada pessoa vê só as próprias metas e as que forem compartilhadas com ela.
-- Em “Nova meta”, escolha o valor, o prazo e a frequência dos depósitos. O app monta os quadradinhos para somar exatamente o valor.
+- Em “Nova meta”, escolha o valor, o prazo e a frequência dos depósitos: todo dia, dias úteis, toda semana, todo mês (no dia que você escolher) ou em sequência. O app monta os quadradinhos para somar exatamente o valor.
+- Para guardar junto com alguém, abra a meta, vá em “Ajustes da meta” e toque em “Convidar por link”. O link vale por 7 dias.
 - Toque no quadradinho depois de depositar. Sem internet, a marcação fica guardada no celular e sobe quando a conexão voltar.
 - No botão de ajustes, no canto de cima: nome, tema, ordem das metas, cópia de segurança, planilha dos depósitos, troca de senha e saída da conta.
 - Dá para instalar como aplicativo. No Android, pelo Chrome: “Instalar app”. No iPhone, pelo Safari: Compartilhar e depois “Adicionar à Tela de Início”.

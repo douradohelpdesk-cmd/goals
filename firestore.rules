@@ -1,0 +1,106 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Os dois e-mails da versão 2.0: os mesmos das regras de hoje, em letras minúsculas.
+    function emailsAntigos() {
+      return ['seu-email@exemplo.com', 'email-dela@exemplo.com'];
+    }
+    function logado() {
+      return request.auth != null;
+    }
+    function daVersaoAnterior() {
+      return logado() && request.auth.token.email in emailsAntigos();
+    }
+    function metaValida(d) {
+      return d.name is string && d.name.size() > 0 && d.name.size() <= 40
+        && d.values is list && d.values.size() > 0 && d.values.size() <= 2000
+        && d.owner is string && d.members is list && d.members.size() <= 20
+        && (!('marks' in d) || d.marks is map);
+    }
+    function conviteValido(codigo, metaId, dono) {
+      return codigo is string && codigo.size() >= 20
+        && exists(/databases/$(database)/documents/convites/$(codigo))
+        && get(/databases/$(database)/documents/convites/$(codigo)).data.metaId == metaId
+        && get(/databases/$(database)/documents/convites/$(codigo)).data.owner == dono
+        && get(/databases/$(database)/documents/convites/$(codigo)).data.expiresAt > request.time.toMillis();
+    }
+
+    // Metas: cada pessoa lê e altera só as metas de que participa.
+    match /metas/{metaId} {
+      allow read: if logado() && request.auth.uid in resource.data.members;
+      allow create: if logado()
+        && request.resource.data.owner == request.auth.uid
+        && request.resource.data.members == [request.auth.uid]
+        && metaValida(request.resource.data);
+      allow update: if logado() && (
+        // quem participa marca, desmarca e renomeia, sem mudar dono nem participantes
+        (request.auth.uid in resource.data.members
+          && request.resource.data.owner == resource.data.owner
+          && request.resource.data.members == resource.data.members
+          && metaValida(request.resource.data))
+        ||
+        // entrar na meta com um convite válido dela (só a própria pessoa)
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['members', 'lastInvite'])
+          && request.resource.data.members.toSet().hasAll(resource.data.members)
+          && request.resource.data.members.toSet().difference(resource.data.members.toSet()).hasOnly([request.auth.uid])
+          && request.resource.data.members.size() <= 20
+          && conviteValido(request.resource.data.get('lastInvite', ''), metaId, resource.data.owner))
+        ||
+        // quem criou remove pessoas, sem colocar ninguém
+        (request.auth.uid == resource.data.owner
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['members'])
+          && resource.data.members.toSet().hasAll(request.resource.data.members)
+          && request.auth.uid in request.resource.data.members)
+        ||
+        // quem participa sai sozinho
+        (request.auth.uid != resource.data.owner
+          && request.auth.uid in resource.data.members
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['members'])
+          && resource.data.members.toSet().hasAll(request.resource.data.members)
+          && resource.data.members.toSet().difference(request.resource.data.members.toSet()).hasOnly([request.auth.uid]))
+        ||
+        // metas trazidas da versão 2.0
+        (daVersaoAnterior()
+          && resource.data.get('fromV2', false) == true
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['members'])
+          && request.resource.data.members.toSet().hasAll(resource.data.members)
+          && request.resource.data.members.toSet().difference(resource.data.members.toSet()).hasOnly([request.auth.uid]))
+      );
+      allow delete: if logado() && request.auth.uid == resource.data.owner;
+    }
+
+    // Convites: quem tem o link lê; só quem criou a meta cria convite dela, com validade de até 8 dias.
+    match /convites/{codigo} {
+      allow get: if logado();
+      allow list: if false;
+      allow create: if logado() && codigo.size() >= 20
+        && request.resource.data.keys().hasOnly(['metaId', 'owner', 'metaName', 'ownerName', 'createdAt', 'expiresAt'])
+        && request.resource.data.owner == request.auth.uid
+        && get(/databases/$(database)/documents/metas/$(request.resource.data.metaId)).data.owner == request.auth.uid
+        && request.resource.data.metaName is string && request.resource.data.metaName.size() <= 40
+        && request.resource.data.ownerName is string && request.resource.data.ownerName.size() <= 30
+        && request.resource.data.expiresAt is int
+        && request.resource.data.expiresAt <= request.time.toMillis() + 691200000;
+      allow update: if false;
+      allow delete: if logado() && resource.data.owner == request.auth.uid;
+    }
+
+    // Perfis: quem está logado lê um perfil pelo código; cada pessoa só altera o próprio.
+    match /usuarios/{uid} {
+      allow get: if logado();
+      allow list: if false;
+      allow create, update: if logado() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['name', 'updatedAt'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 30;
+      allow delete: if logado() && request.auth.uid == uid;
+    }
+
+    // Dados da versão 2.0: continuam só para os dois e-mails antigos.
+    match /desafios/{id} {
+      allow read, write: if daVersaoAnterior();
+    }
+  }
+}

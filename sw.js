@@ -1,6 +1,6 @@
 // Guarda o app e a biblioteca do Firebase no aparelho, para abrir mesmo sem internet.
 // Com internet, o app sempre busca a versão mais nova primeiro.
-const CACHE = 'goals-3.0';
+const CACHE = 'goals-3.2';
 const SDK_BASE = 'https://www.gstatic.com/firebasejs/13.2.0/';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './icon-maskable-512.png', './apple-touch-icon.png'];
 const SDK = ['firebase-app.js', 'firebase-auth.js', 'firebase-firestore.js'].map((f) => SDK_BASE + f);

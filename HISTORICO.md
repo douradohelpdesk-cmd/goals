@@ -1,5 +1,20 @@
 # Histórico de versões do Goals
 
+## 3.2 (25/11/2026)
+
+- Nova frequência “Todo mês”: um depósito por mês, no dia escolhido (do dia 1 ao 28), como o dia do salário.
+- A prévia mostra quantos quadradinhos a meta terá, a média por mês e a data do primeiro depósito.
+- Nas metas mensais, a meta mostra quanto falta por mês e a data do próximo depósito, e o ritmo considera os depósitos já vencidos.
+- Os cartões da tela inicial mostram “por mês” nas metas mensais.
+
+## 3.1 (24/11/2026)
+
+- Convite por link: quem criou a meta gera um link, que vale por 7 dias, e manda pelo WhatsApp ou copia. Quem abre o link entra na meta depois de entrar ou criar a conta.
+- Pessoas na meta: lista de quem participa. Quem criou pode remover pessoas, e quem participa pode sair da meta.
+- Avisos quando alguém entra ou sai de uma meta compartilhada.
+- Tela de entrada nova: logo com os quadradinhos acendendo, nome Goals na fonte Unbounded e textos mais curtos.
+- O nome Goals no topo mostra a conexão: verde quando está conectado, vermelho sem conexão e cinza enquanto conecta. Tocar nele mostra os detalhes.
+
 ## 3.0 (24/11/2026)
 
 - Cadastro pelo próprio app: quem não tem conta toca em “Criar conta”, informa nome, e-mail e senha e recebe um link de confirmação.

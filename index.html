@@ -13,7 +13,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400..800&amp;display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400..800&amp;family=Unbounded:wght@600..800&amp;display=swap">
 <style id="app-style">
 :root {
   --bg: #F2F5F3;
@@ -781,6 +781,103 @@ h1 { overflow-wrap: anywhere; }
 .owner-note { margin: 4px 0 0; color: var(--muted); font-size: 14px; }
 .link-on-dark { margin: 0; padding: 0; color: var(--accent); font-size: 14px; }
 .profile-verify { flex-wrap: wrap; gap: 4px 10px; }
+
+/* ---------- 3.1: nome Goals como indicador de conexão ---------- */
+.sr-only {
+  position: absolute !important;
+  width: 1px; height: 1px; margin: -1px; padding: 0;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+.wordmark {
+  font-family: "Unbounded", "Manrope", system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1;
+  transition: color 0.5s ease;
+}
+.brand {
+  display: inline-flex; align-items: center; gap: 10px;
+  margin: 0; padding: 4px 6px 4px 0;
+  border: 0; border-radius: 12px; background: none; color: inherit; cursor: pointer;
+}
+.brand .wordmark { font-size: 27px; }
+.wordmark-sm {
+  margin: 0; padding: 8px 4px;
+  border: 0; border-radius: 10px; background: none; cursor: pointer;
+  font-size: 17px;
+}
+[data-sync="ok"] .top .wordmark { color: var(--done); }
+[data-sync="bad"] .top .wordmark { color: var(--bad); }
+[data-sync="muted"] .top .wordmark { color: var(--muted); }
+[data-sync="local"] .top .wordmark { color: var(--text); }
+.brand:focus-visible, .wordmark-sm:focus-visible { outline: 2px solid var(--done); outline-offset: 2px; }
+
+/* ---------- 3.1: tela de entrada ---------- */
+.signed-out .top, .signed-out .banner { display: none !important; }
+.welcome { max-width: 420px; margin: 0 auto; padding: 8vh 0 28px; }
+.welcome-brand { display: flex; flex-direction: column; align-items: center; margin: 0 0 28px; text-align: center; }
+.welcome-logo { display: block; width: 84px; height: 84px; border-radius: 22px; box-shadow: 0 16px 36px rgba(15, 61, 46, 0.3); }
+.wordmark-xl { margin: 20px 0 0; color: var(--text); font-size: 48px; }
+.welcome-tag { margin: 12px 0 0; color: var(--muted); font-size: 16px; }
+.welcome-card {
+  padding: 18px 18px 12px;
+  border: 1px solid var(--line); border-radius: 24px;
+  background: var(--card); box-shadow: var(--shadow);
+}
+.welcome .login-lead { margin: 0 0 16px; }
+.invite-note {
+  margin: 0 0 14px; padding: 12px 14px;
+  border-radius: 14px; background: var(--accent-soft);
+  font-size: 15px; font-weight: 650; text-align: center;
+}
+/* Os quadradinhos dourados do logo acendem um por um, como depósitos marcados. */
+.lg-g { transform-box: fill-box; transform-origin: center; animation: lg-stamp 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.35) both; }
+.lg-g1 { animation-delay: 0.25s; }
+.lg-g2 { animation-delay: 0.5s; }
+.lg-g3 { animation-delay: 0.75s; }
+@keyframes lg-stamp { from { opacity: 0; transform: scale(0.4); } to { opacity: 1; transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { .lg-g { animation: none; } .wordmark { transition: none; } }
+
+/* ---------- 3.1: pessoas na meta e convite ---------- */
+.people { margin: 18px 0 0; padding: 16px 0 0; border-top: 1px solid var(--line); }
+.people-list { margin: 0 0 12px; padding: 0; list-style: none; }
+.people-list li { display: flex; align-items: center; gap: 12px; padding: 8px 0; }
+.p-avatar {
+  display: inline-flex; flex: none; align-items: center; justify-content: center;
+  width: 38px; height: 38px; border-radius: 50%;
+  background: var(--hero); color: var(--accent); font-weight: 800;
+}
+.p-name { display: flex; flex: 1; flex-direction: column; min-width: 0; font-weight: 700; overflow-wrap: anywhere; }
+.p-tag { color: var(--muted); font-size: 13px; font-weight: 600; }
+.p-remove { flex: none; margin: 0; padding: 8px 2px; color: var(--bad); font-size: 14px; }
+.invite-box { margin: 2px 0 12px; padding: 14px; border-radius: 16px; background: var(--accent-soft); }
+.invite-help { margin: 0 0 10px; font-size: 14.5px; }
+.invite-link {
+  width: 100%; margin: 0 0 10px; padding: 10px 12px;
+  border: 1px solid var(--tile-line); border-radius: 12px;
+  background: var(--card); color: var(--text); font: inherit; font-size: 14px;
+}
+.invite-box a.btn-ghost { text-decoration: none; }
+.people .group-confirm { padding: 12px 0; border-top: 0; }
+#leave-btn { margin-top: 4px; }
+
+/* ---------- 3.2: dia do depósito mensal ---------- */
+.np-day { margin: 14px 0 6px; }
+.field select {
+  display: block;
+  width: 100%;
+  margin: 6px 0 0;
+  padding: 12px 14px;
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  background: var(--tile);
+  color: var(--text);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 600;
+}
+.field select:focus { outline: none; border-color: var(--done); }
+.np-day-hint { margin: 0 2px 4px; }
 </style>
 </head>
 <body>
@@ -795,7 +892,7 @@ h1 { overflow-wrap: anywhere; }
   var styleNode = document.getElementById('app-style');
   var STYLE_SRC = styleNode ? styleNode.textContent : '';
   var APP_TITLE = 'Goals';
-  var FONT_HREF = 'https://fonts.googleapis.com/css2?family=Manrope:wght@400..800&display=swap';
+  var FONT_HREF = 'https://fonts.googleapis.com/css2?family=Manrope:wght@400..800&family=Unbounded:wght@600..800&display=swap';
   var SDK_BASE = 'https://www.gstatic.com/firebasejs/13.2.0/';
   var COL = 'metas';
   var USERS = 'usuarios';
@@ -811,6 +908,7 @@ h1 { overflow-wrap: anywhere; }
     { id: 'daily', label: 'Todo dia', each: 'um depósito por dia' },
     { id: 'weekdays', label: 'Dias úteis', each: 'um depósito por dia útil' },
     { id: 'weekly', label: 'Toda semana', each: 'um depósito por semana' },
+    { id: 'monthly', label: 'Todo mês', each: 'um depósito por mês' },
     { id: 'seq', label: 'Sequência 1, 2, 3…', each: '' }
   ];
   var LEGACY_N = { 20000: 200, 30000: 245, 40000: 283, 50000: 316 };
@@ -833,9 +931,20 @@ h1 { overflow-wrap: anywhere; }
   var ICON_TABLE = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3.5 9.5h17M3.5 14.5h17M9.5 9.5v10" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
   var ICON_KEY = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="8" cy="15" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M11 12l8-8M16 7l2.5 2.5M14 9l2 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
   var ICON_LOGOUT = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M10 5H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h4M15 8l4 4-4 4M19 12H9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-  var APP_VERSION = '3.0';
+  var APP_VERSION = '3.2';
+  var INVITE_COL = 'convites';
+  var INVITE_KEY = 'goals-convite';
+  var INVITE_DAYS = 7;
+  var SITE_URL = 'https://douradohelpdesk-cmd.github.io/goals/';
   var THEME_KEY = 'goals-tema';
   var ORDER_KEY = 'goals-ordem';
+  var ICON_LINK = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  // Logo grande da tela de entrada: os três quadradinhos dourados da diagonal acendem em sequência.
+  var LOGO_BIG = '<svg class="welcome-logo" viewBox="0 0 512 512" width="84" height="84" aria-hidden="true"><rect width="512" height="512" rx="120" fill="#0F3D2E"/>' +
+    [0, 1, 2].map(function (r) { return [0, 1, 2].map(function (c) {
+      return '<rect x="' + (88 + c * 114) + '" y="' + (88 + r * 114) + '" width="92" height="92" rx="24" fill="rgba(255,255,255,0.18)"/>' +
+        (r === c ? '<rect class="lg-g lg-g' + (r + 1) + '" x="' + (88 + c * 114) + '" y="' + (88 + r * 114) + '" width="92" height="92" rx="24" fill="#F5C542"/>' : '');
+    }).join(''); }).join('') + '</svg>';
   var ICON_PLUS = '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>';
 
   /* ---------- Números e datas ---------- */
@@ -935,7 +1044,26 @@ h1 { overflow-wrap: anywhere; }
     vals[n - 1] += diff;
     return vals.sort(function (x, y) { return x - y; });
   }
-  function countDeposits(freq, s, e) {
+  function clampDay(d) {
+    d = Math.round(Number(d));
+    return d >= 1 && d <= 28 ? d : 0;
+  }
+  function defaultPayDay(s) { return Math.min(28, s.getDate()); }
+  // Datas do depósito mensal dentro do prazo: todo mês no dia escolhido (até o dia 28, que existe em todos os meses).
+  function monthlyDates(s, e, day) {
+    day = clampDay(day) || defaultPayDay(s);
+    var out = [];
+    var d = new Date(s.getFullYear(), s.getMonth(), day);
+    if (d < s) d = new Date(s.getFullYear(), s.getMonth() + 1, day);
+    while (d <= e && out.length < MAX_SQUARES) {
+      out.push(d);
+      d = new Date(d.getFullYear(), d.getMonth() + 1, day);
+    }
+    if (!out.length) out.push(e);
+    return out;
+  }
+  function countDeposits(freq, s, e, day) {
+    if (freq === 'monthly') return monthlyDates(s, e, day).length;
     var days = dayDiff(s, e) + 1;
     if (freq === 'weekly') return Math.max(1, Math.ceil(days / 7));
     if (freq === 'weekdays') {
@@ -948,9 +1076,9 @@ h1 { overflow-wrap: anywhere; }
     }
     return Math.max(1, days);
   }
-  function planValues(goal, freq, startStr, endStr) {
+  function planValues(goal, freq, startStr, endStr, day) {
     if (freq === 'seq') return seqValues(goal);
-    return rampValues(goal, countDeposits(freq, parseYMD(startStr), parseYMD(endStr)));
+    return rampValues(goal, countDeposits(freq, parseYMD(startStr), parseYMD(endStr), day));
   }
   function freqInfo(id) {
     for (var i = 0; i < FREQS.length; i++) if (FREQS[i].id === id) return FREQS[i];
@@ -1004,6 +1132,7 @@ h1 { overflow-wrap: anywhere; }
     out.owner = typeof p.owner === 'string' ? p.owner.slice(0, 128) : '';
     out.members = Array.isArray(p.members) ? p.members.filter(function (m) { return typeof m === 'string' && m; }).slice(0, 50) : [];
     out.fromV2 = p.fromV2 === true;
+    out.payDay = out.freq === 'monthly' ? (clampDay(p.payDay) || (out.start ? defaultPayDay(parseYMD(out.start)) : 1)) : 0;
     return out;
   }
   function cleanNames(src, dst) {
@@ -1034,7 +1163,7 @@ h1 { overflow-wrap: anywhere; }
   }
   function plainProject(p) {
     return { name: p.name, goal: p.goal, start: p.start, end: p.end, freq: p.freq, values: p.values.slice(), marks: JSON.parse(JSON.stringify(p.marks)), who: JSON.parse(JSON.stringify(p.who)), createdAt: p.createdAt,
-      owner: p.owner || '', members: (p.members || []).slice(), fromV2: !!p.fromV2 };
+      owner: p.owner || '', members: (p.members || []).slice(), fromV2: !!p.fromV2, payDay: p.payDay || 0 };
   }
   function plainState(d) {
     var out = { v: 2, projects: {}, names: JSON.parse(JSON.stringify(d.names)), updatedAt: d.updatedAt || Date.now() };
@@ -1044,7 +1173,9 @@ h1 { overflow-wrap: anywhere; }
   function projectDoc(p, uid) {
     var marks = {};
     Object.keys(p.marks).forEach(function (k) { marks[k] = { t: p.marks[k], by: p.who[k] || uid || '' }; });
-    return { v: 3, name: p.name, goal: p.goal, start: p.start, end: p.end, freq: p.freq, values: p.values.slice(), marks: marks, createdAt: p.createdAt || Date.now() };
+    var d = { v: 3, name: p.name, goal: p.goal, start: p.start, end: p.end, freq: p.freq, values: p.values.slice(), marks: marks, createdAt: p.createdAt || Date.now() };
+    if (p.freq === 'monthly') d.payDay = p.payDay || 1;
+    return d;
   }
   function isShared(p) { return mode === 'cloud' && p && p.members && p.members.length > 1; }
   function isOwner(p) { return mode !== 'cloud' || !p.owner || (me && p.owner === me.uid); }
@@ -1064,12 +1195,27 @@ h1 { overflow-wrap: anywhere; }
     var left = Math.max(0, dayDiff(t, e) + 1);
     var elapsed = Math.min(days, Math.max(0, dayDiff(s, t) + 1));
     var remaining = Math.max(0, target - total);
-    return {
+    var out = {
       target: target, total: total, count: count, n: p.values.length, days: days, left: left,
       started: t >= s, ended: t > e, startsIn: Math.max(0, dayDiff(t, s)), remaining: remaining,
       perDay: left > 0 ? remaining / left : remaining, expected: target * elapsed / days,
-      pct: target ? total / target * 100 : 0
+      pct: target ? total / target * 100 : 0, monthly: false
     };
+    if (p.freq === 'monthly') {
+      var dates = monthlyDates(s, e, p.payDay);
+      var due = 0;
+      var ahead = 0;
+      var next = null;
+      dates.forEach(function (d) {
+        if (d <= t) due++;
+        if (d >= t) { ahead++; if (!next) next = d; }
+      });
+      out.monthly = true;
+      out.nextDue = next;
+      out.perMonth = remaining / Math.max(1, ahead);
+      out.expected = target * due / dates.length;
+    }
+    return out;
   }
   function sortedProjects(d) {
     return Object.keys(d.projects).map(function (id) { return d.projects[id]; })
@@ -1118,7 +1264,7 @@ h1 { overflow-wrap: anywhere; }
   var filter = 'all';
   var toastTimer = null;
   var pendingImport = null;
-  var np = { goal: 0, custom: false, end: '', endPreset: '1y', freq: 'daily' };
+  var np = { goal: 0, custom: false, end: '', endPreset: '1y', freq: 'daily', day: 1 };
 
   var fb = null;
   var me = null;
@@ -1145,19 +1291,28 @@ h1 { overflow-wrap: anywhere; }
       '<header class="top">' +
         '<div class="top-row"><div class="top-left">' +
           '<button type="button" class="back" id="back" hidden>' + ICON_BACK + '<span>Metas</span></button>' +
-          '<div class="title-row"><span class="brand-logo" id="brand-logo">' + LOGO + '</span><h1 id="title">Goals</h1></div></div>' +
-          '<div class="top-right"><span class="save" id="save"><i class="dot" aria-hidden="true"></i><span id="save-text"></span></span>' +
+          '<div class="title-row"><button type="button" class="brand" id="brand"><span class="brand-logo" id="brand-logo">' + LOGO + '</span>' +
+            '<span class="wordmark" aria-hidden="true">Goals</span></button><h1 id="title" class="page-title">Goals</h1></div></div>' +
+          '<div class="top-right"><span class="sr-only" id="save-text" aria-live="polite"></span>' +
+          '<button type="button" class="wordmark wordmark-sm" id="wordmark-sm" hidden>Goals</button>' +
           '<button type="button" class="icon-btn" id="settings-btn" aria-haspopup="dialog" aria-label="Ajustes: conta e cópia de segurança">' + ICON_SETTINGS + '</button></div></div>' +
       '</header>' +
       '<p class="banner" id="banner" hidden></p>' +
+      '<div class="notice invite-card" id="invite-card" hidden><p id="invite-text"></p>' +
+        '<div class="row"><button type="button" class="btn-solid btn-small" id="invite-accept">Participar da meta</button>' +
+        '<button type="button" class="btn-ghost" id="invite-decline">Agora não</button></div></div>' +
       '<div class="notice" id="migrate" hidden><p id="migrate-text"></p>' +
         '<div class="row"><button type="button" class="btn-ghost" id="migrate-yes">Enviar para a meta</button>' +
         '<button type="button" class="btn-ghost" id="migrate-no">Deixar de fora</button></div></div>' +
-      '<section class="login" id="login" hidden aria-labelledby="login-title">' +
+      '<section class="welcome" id="login" hidden aria-labelledby="login-title">' +
+        '<div class="welcome-brand">' + LOGO_BIG + '<p class="wordmark wordmark-xl">Goals</p>' +
+          '<p class="welcome-tag">Suas metas, um quadradinho por vez.</p></div>' +
+        '<p class="invite-note" id="invite-note" hidden>Você recebeu um convite para participar de uma meta. Entre ou crie sua conta para aceitar.</p>' +
+        '<div class="welcome-card">' +
         '<div class="seg login-tabs" id="login-tabs" role="group" aria-label="Entrar ou criar conta">' +
           '<button type="button" data-m="in" aria-pressed="true">Entrar</button><button type="button" data-m="up" aria-pressed="false">Criar conta</button></div>' +
-        '<h2 id="login-title">Entrar no Goals</h2>' +
-        '<p class="login-lead" id="login-lead">Entre com seu e-mail e senha. Cada pessoa vê só as próprias metas e as que forem compartilhadas com ela.</p>' +
+        '<h2 id="login-title" class="sr-only">Entrar</h2>' +
+        '<p class="login-lead" id="login-lead">Entre com seu e-mail e senha.</p>' +
         '<form id="login-form" novalidate>' +
           '<label class="field" id="signup-name-wrap" hidden>Seu nome<input id="signup-name" type="text" maxlength="30" autocomplete="nickname"></label>' +
           '<label class="field">E-mail<input id="login-email" type="email" autocomplete="username" inputmode="email" autocapitalize="none" spellcheck="false"></label>' +
@@ -1167,6 +1322,7 @@ h1 { overflow-wrap: anywhere; }
           '<button type="submit" class="btn-solid" id="login-btn">Entrar</button>' +
         '</form>' +
         '<button type="button" class="link" id="login-reset">Esqueci minha senha</button>' +
+        '</div>' +
       '</section>' +
 
       '<section id="view-home">' +
@@ -1195,6 +1351,8 @@ h1 { overflow-wrap: anywhere; }
           '<label class="field">Data final<input id="np-end" type="date"></label>' +
           '<p class="field-label" id="np-freq-label">Com que frequência você vai depositar?</p>' +
           '<div class="chips" id="np-freqs" role="group" aria-labelledby="np-freq-label"></div>' +
+          '<label class="field np-day" id="np-day-wrap" hidden>Dia do depósito<select id="np-day"></select></label>' +
+          '<p class="field-hint np-day-hint" id="np-day-hint" hidden>Escolha o dia em que costuma receber, como o dia do salário.</p>' +
           '<div class="preview" id="np-preview" aria-live="polite"></div>' +
           '<p class="form-msg error" id="np-msg" role="alert" hidden></p>' +
           '<button type="button" class="btn-solid" id="np-create">Criar meta</button>' +
@@ -1232,7 +1390,25 @@ h1 { overflow-wrap: anywhere; }
         '<details class="panel"><summary>Como funciona</summary><div class="panel-body" id="how"></div></details>' +
         '<details class="panel" id="settings-project"><summary>Ajustes da meta</summary><div class="panel-body">' +
           '<label class="field">Nome da meta<input id="p-name" type="text" maxlength="40" autocomplete="off"></label>' +
-          '<p id="p-people"></p>' +
+          '<div class="people" id="p-people-box" hidden>' +
+            '<p class="opt-label">Pessoas nesta meta</p>' +
+            '<ul class="people-list" id="p-people"></ul>' +
+            '<div class="group-confirm" id="remove-confirm" hidden><p id="remove-text" class="confirm-text"></p>' +
+              '<div class="row"><button type="button" class="btn-ghost btn-danger" id="remove-yes">Remover</button>' +
+              '<button type="button" class="btn-ghost" id="remove-no">Cancelar</button></div></div>' +
+            '<button type="button" class="btn-ghost" id="invite-btn" hidden>' + ICON_LINK + '<span>Convidar por link</span></button>' +
+            '<div class="invite-box" id="invite-box" hidden>' +
+              '<p class="invite-help">Mande este link para quem você quer chamar. Ele vale por ' + INVITE_DAYS + ' dias, e quem entrar por ele passa a ver e marcar esta meta.</p>' +
+              '<input class="invite-link" id="invite-link" type="text" readonly aria-label="Link do convite">' +
+              '<div class="row"><button type="button" class="btn-solid btn-small" id="invite-share" hidden>Compartilhar</button>' +
+              '<button type="button" class="btn-ghost" id="invite-copy">Copiar link</button>' +
+              '<a class="btn-ghost" id="invite-wa" target="_blank" rel="noopener">Enviar pelo WhatsApp</a></div>' +
+            '</div>' +
+            '<button type="button" class="btn-ghost btn-danger" id="leave-btn" hidden>Sair desta meta</button>' +
+            '<div class="group-confirm" id="leave-confirm" hidden><p id="leave-text" class="confirm-text"></p>' +
+              '<div class="row"><button type="button" class="btn-ghost btn-danger" id="leave-yes">Sair da meta</button>' +
+              '<button type="button" class="btn-ghost" id="leave-no">Cancelar</button></div></div>' +
+          '</div>' +
           '<p id="p-plan"></p>' +
           '<button type="button" class="btn-ghost btn-danger" id="p-delete">Excluir meta</button>' +
           '<p class="owner-note" id="p-owner-note" hidden>Só quem criou esta meta pode excluí-la.</p>' +
@@ -1293,7 +1469,9 @@ h1 { overflow-wrap: anywhere; }
 
   function byId(id) { return document.getElementById(id); }
   var els = {};
-  ['login-tabs', 'login-title', 'login-lead', 'signup-name-wrap', 'signup-name', 'pass-hint', 'h-kicker', 'p-people', 'p-owner-note',
+  ['np-day-wrap', 'np-day', 'np-day-hint', 'brand', 'wordmark-sm', 'invite-note', 'invite-card', 'invite-text', 'invite-accept', 'invite-decline', 'p-people-box',
+    'remove-confirm', 'remove-text', 'remove-yes', 'remove-no', 'invite-btn', 'invite-box', 'invite-link', 'invite-share', 'invite-copy',
+    'invite-wa', 'leave-btn', 'leave-confirm', 'leave-text', 'leave-yes', 'leave-no', 'login-tabs', 'login-title', 'login-lead', 'signup-name-wrap', 'signup-name', 'pass-hint', 'h-kicker', 'p-people', 'p-owner-note',
     'verify-line', 'verify-resend', 'page', 'brand-logo', 'settings-btn', 'sheet', 'sheet-bg', 'sheet-close', 'avatar', 'who-name', 'home-hero', 'h-total', 'h-sub',
     'profile', 'name-edit', 'name-form', 'name-save', 'name-cancel', 'sync-dot', 'sync-line', 'people-line', 'theme-seg', 'order-seg',
     'export-csv', 'change-pass', 'change-pass-sub',
@@ -1309,6 +1487,7 @@ h1 { overflow-wrap: anywhere; }
     'p-delete-yes', 'p-delete-no', 'toast'].forEach(function (id) {
     els[id.replace(/-([a-z0-9])/g, function (m, c) { return c.toUpperCase(); })] = byId(id);
   });
+  delete els.save;
 
   function rich(el, parts) {
     el.textContent = '';
@@ -1361,7 +1540,17 @@ h1 { overflow-wrap: anywhere; }
   }
   function route() {
     var h = location.hash.replace(/^#/, '');
+    if (h.indexOf('convite-') === 0) {
+      var code = h.slice(8).replace(/[^a-z0-9]/g, '').slice(0, 64);
+      if (code) setPendingInvite(code);
+      try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { location.hash = ''; }
+      h = '';
+      maybeProcessInvite();
+    }
     if (sheetOpen) closeSheet();
+    els.inviteBox.hidden = true;
+    els.removeConfirm.hidden = true;
+    els.leaveConfirm.hidden = true;
     els.pDeleteConfirm.hidden = true;
     els.pDelete.hidden = false;
     if (h === 'novo') {
@@ -1402,7 +1591,9 @@ h1 { overflow-wrap: anywhere; }
     var p = current();
     if (view === 'project' && !p) { show('home'); return; }
     var title = view === 'home' ? APP_TITLE : (view === 'new' ? 'Nova meta' : p.name);
-    els.brandLogo.hidden = view !== 'home';
+    els.brand.hidden = view !== 'home';
+    els.title.classList.toggle('sr-only', view === 'home');
+    els.wordmarkSm.hidden = view === 'home';
     els.title.textContent = title;
     document.title = view === 'home' ? APP_TITLE : title + ' | ' + APP_TITLE;
     if (view === 'home') renderHome();
@@ -1489,8 +1680,8 @@ h1 { overflow-wrap: anywhere; }
       var f2 = document.createElement('span');
       if (st.remaining <= 0) { f1.textContent = 'Meta batida!'; f2.textContent = ''; }
       else if (st.ended) { f1.textContent = 'Prazo encerrado em ' + brDate(p.end); f2.textContent = 'faltam ' + money(st.remaining); }
-      else if (!st.started) { f1.textContent = 'Começa em ' + brDate(p.start); f2.textContent = moneyC(st.remaining / st.days) + ' por dia'; }
-      else { f1.textContent = 'Até ' + brDate(p.end); f2.textContent = moneyC(st.perDay) + ' por dia'; }
+      else if (!st.started) { f1.textContent = 'Começa em ' + brDate(p.start); f2.textContent = st.monthly ? moneyC(st.perMonth) + ' por mês' : moneyC(st.remaining / st.days) + ' por dia'; }
+      else { f1.textContent = 'Até ' + brDate(p.end); f2.textContent = st.monthly ? moneyC(st.perMonth) + ' por mês' : moneyC(st.perDay) + ' por dia'; }
       foot.appendChild(f1);
       foot.appendChild(f2);
       card.appendChild(top);
@@ -1564,7 +1755,7 @@ h1 { overflow-wrap: anywhere; }
     });
     els.s1Label.textContent = 'Em ' + MONTHS[now.getMonth()];
     els.s1Value.textContent = money(monthSum);
-    els.s1Sub.textContent = st.remaining <= 0 || st.ended ? 'depositados no mês' : 'ideal: ' + money(st.perDay * 30.44) + ' no mês';
+    els.s1Sub.textContent = st.remaining <= 0 || st.ended ? 'depositados no mês' : 'ideal: ' + money(st.monthly ? st.perMonth : st.perDay * 30.44) + ' no mês';
 
     if (st.remaining <= 0) {
       els.s2Label.textContent = 'Cartela';
@@ -1593,30 +1784,28 @@ h1 { overflow-wrap: anywhere; }
       els.s3Value.textContent = money(st.remaining);
       els.s3Sub.textContent = 'para fechar a meta';
     } else {
-      var perDay = st.started ? st.perDay : st.remaining / st.days;
-      els.s3Label.textContent = 'Por dia';
-      els.s3Value.textContent = moneyC(perDay);
       var people = isShared(p) ? p.members.length : 1;
-      els.s3Sub.textContent = people > 1 ? moneyC(perDay / people) + ' para cada um' : 'até ' + brDate(p.end);
+      if (st.monthly) {
+        els.s3Label.textContent = 'Por mês';
+        els.s3Value.textContent = moneyC(st.perMonth);
+        els.s3Sub.textContent = people > 1 ? moneyC(st.perMonth / people) + ' para cada um'
+          : (st.nextDue ? 'próximo: ' + brDate(ymd(st.nextDue)).slice(0, 5) : 'até ' + brDate(p.end));
+      } else {
+        var perDay = st.started ? st.perDay : st.remaining / st.days;
+        els.s3Label.textContent = 'Por dia';
+        els.s3Value.textContent = moneyC(perDay);
+        els.s3Sub.textContent = people > 1 ? moneyC(perDay / people) + ' para cada um' : 'até ' + brDate(p.end);
+      }
     }
     applyFilter(st.count, st.n);
     if (document.activeElement !== els.pName) els.pName.value = p.name;
     var f = freqInfo(p.freq);
     var plan = 'Meta de ' + money(p.goal) + ', de ' + brDate(p.start) + ' a ' + brDate(p.end) + ', ' +
-      (p.freq === 'seq' ? 'com quadradinhos em sequência' : 'com ' + f.each) + ': ' + st.n + ' quadradinhos, de ' +
+      (p.freq === 'seq' ? 'com quadradinhos em sequência' : 'com ' + f.each + (p.freq === 'monthly' ? ', todo dia ' + p.payDay : '')) + ': ' + st.n + ' quadradinhos, de ' +
       money(p.values[0]) + ' a ' + money(p.values[p.values.length - 1]) + '. Para mudar o valor ou o prazo, crie uma meta nova.';
     els.pPlan.textContent = plan;
-    if (mode === 'cloud' && p.members.length) {
-      var names = p.members.map(function (u) {
-        var nm = u === (me && me.uid) ? 'você' : (data.names[u] || 'outra pessoa');
-        return u === p.owner ? nm + ' (quem criou)' : nm;
-      });
-      els.pPeople.textContent = p.members.length > 1 ? 'Pessoas nesta meta: ' + joinNames(names) + '.' : 'Só você vê esta meta.';
-      els.pPeople.hidden = false;
-    } else {
-      els.pPeople.hidden = true;
-    }
     var owner = isOwner(p);
+    renderPeople(p, owner);
     if (els.pDeleteConfirm.hidden) els.pDelete.hidden = !owner;
     els.pOwnerNote.hidden = owner;
     var how = [
@@ -1626,6 +1815,47 @@ h1 { overflow-wrap: anywhere; }
     ];
     if (isShared(p)) how.push('Nesta meta compartilhada, quando alguém marca, os outros veem na hora.');
     para(els.how, how);
+  }
+  function renderPeople(p, owner) {
+    var cloud = mode === 'cloud' && !!me;
+    els.pPeopleBox.hidden = !cloud;
+    if (!cloud) return;
+    els.pPeople.textContent = '';
+    p.members.forEach(function (u) {
+      var mine2 = u === me.uid;
+      var nm = mine2 ? (data.names[u] || defaultName(me.email)) : (data.names[u] || 'Pessoa convidada');
+      var li = document.createElement('li');
+      var av = document.createElement('span');
+      av.className = 'p-avatar';
+      av.setAttribute('aria-hidden', 'true');
+      av.textContent = nm.charAt(0).toUpperCase();
+      var tx = document.createElement('span');
+      tx.className = 'p-name';
+      tx.textContent = nm;
+      var tags = [];
+      if (mine2) tags.push('você');
+      if (u === p.owner) tags.push('criou a meta');
+      if (tags.length) {
+        var tg = document.createElement('span');
+        tg.className = 'p-tag';
+        tg.textContent = tags.join(', ');
+        tx.appendChild(tg);
+      }
+      li.appendChild(av);
+      li.appendChild(tx);
+      if (owner && !mine2) {
+        var rm = document.createElement('button');
+        rm.type = 'button';
+        rm.className = 'link p-remove';
+        rm.setAttribute('data-uid', u);
+        rm.textContent = 'Remover';
+        rm.setAttribute('aria-label', 'Remover ' + nm + ' desta meta');
+        li.appendChild(rm);
+      }
+      els.pPeople.appendChild(li);
+    });
+    els.inviteBtn.hidden = !owner || !els.inviteBox.hidden;
+    els.leaveBtn.hidden = owner || !els.leaveConfirm.hidden;
   }
   function applyFilter(count, n) {
     els.grid.setAttribute('data-filter', filter);
@@ -1728,8 +1958,16 @@ h1 { overflow-wrap: anywhere; }
       cls = m[0];
       t = m[1];
     }
-    els.save.className = 'save ' + cls;
+    var state = mode === 'local' ? (storageOK ? 'local' : 'bad') : ({ ok: 'ok', wait: 'ok', muted: 'muted', bad: 'bad' })[cls];
+    if (mode === 'cloud' && (cloudStatus === 'loading')) state = 'muted';
+    if (mode === 'cloud' && (cloudStatus === 'offline')) state = 'bad';
+    app.setAttribute('data-sync', state);
     els.saveText.textContent = t;
+    var label = 'Goals: ' + t.replace('…', '').toLowerCase() + '. Toque para ver detalhes.';
+    els.brand.setAttribute('aria-label', label);
+    els.brand.title = t;
+    els.wordmarkSm.setAttribute('aria-label', label);
+    els.wordmarkSm.title = t;
     app.classList.toggle('waiting', !canEdit());
   }
 
@@ -1748,7 +1986,7 @@ h1 { overflow-wrap: anywhere; }
   function resetNew() {
     creating = false;
     els.npCreate.disabled = false;
-    np = { goal: 0, custom: false, end: ymd(endPresets()[2].date), endPreset: '1y', freq: 'daily' };
+    np = { goal: 0, custom: false, end: ymd(endPresets()[2].date), endPreset: '1y', freq: 'daily', day: defaultPayDay(today0()) };
     els.npName.value = '';
     els.npCustom.value = '';
     els.npMsg.hidden = true;
@@ -1791,6 +2029,18 @@ h1 { overflow-wrap: anywhere; }
     Array.prototype.forEach.call(els.npFreqs.children, function (b) {
       b.setAttribute('aria-pressed', b.getAttribute('data-freq') === np.freq ? 'true' : 'false');
     });
+    var monthly = np.freq === 'monthly';
+    els.npDayWrap.hidden = !monthly;
+    els.npDayHint.hidden = !monthly;
+    if (monthly && !els.npDay.options.length) {
+      for (var dd = 1; dd <= 28; dd++) {
+        var op = document.createElement('option');
+        op.value = String(dd);
+        op.textContent = 'Dia ' + dd;
+        els.npDay.appendChild(op);
+      }
+    }
+    if (monthly) els.npDay.value = String(np.day);
     var problem = npProblem();
     if (problem) {
       para(els.npPreview, [problem === 'Escolha quanto quer juntar.' ? 'Escolha quanto quer juntar e até quando. O cálculo aparece aqui.' : problem]);
@@ -1799,10 +2049,19 @@ h1 { overflow-wrap: anywhere; }
     var g = npGoal();
     var start = ymd(today0());
     var days = dayDiff(today0(), parseYMD(np.end)) + 1;
-    var values = planValues(g, np.freq, start, np.end);
+    var values = planValues(g, np.freq, start, np.end, np.day);
     var n = values.length;
     var perDay = g / days;
     var lines = [];
+    if (np.freq === 'monthly') {
+      var md = monthlyDates(today0(), parseYMD(np.end), np.day);
+      lines.push(['Até ' + brDate(np.end) + ', com um depósito por mês no dia ' + np.day + ', ficam ',
+        { b: n + (n === 1 ? ' quadradinho' : ' quadradinhos') }, ', de ' + money(values[0]) + ' a ' + money(values[n - 1]) + '.']);
+      lines.push(['Para chegar a ' + money(g) + ', guarde em média ', { b: moneyC(g / n) + ' por mês' },
+        '. O primeiro depósito é em ' + brDate(ymd(md[0])) + '.']);
+      para(els.npPreview, lines);
+      return;
+    }
     if (np.freq === 'seq') {
       lines.push(['São ', { b: n + ' quadradinhos' }, ', de ' + money(values[0]) + ' a ' + money(values[n - 1]) + ', somando ' + money(g) + '. ',
         n > days ? 'Em ' + days + ' dias, alguns dias vão ter mais de um depósito.' : 'Em ' + days + ' dias, dá um depósito a cada ' + (Math.round(days / n * 10) / 10).toLocaleString('pt-BR') + ' dias, em média.']);
@@ -1956,6 +2215,19 @@ h1 { overflow-wrap: anywhere; }
       Object.keys(b.marks).forEach(function (k) { if (!a.marks[k] && !mine(id + ':' + k)) plus.push(Number(k)); });
       Object.keys(a.marks).forEach(function (k) { if (!b.marks[k] && !mine(id + ':' + k)) minus.push(Number(k)); });
       if (id === currentId) added = plus;
+      var joined = (b.members || []).filter(function (u) { return (a.members || []).indexOf(u) === -1 && (!me || u !== me.uid); });
+      var left = (a.members || []).filter(function (u) { return (b.members || []).indexOf(u) === -1 && (!me || u !== me.uid); });
+      if (joined.length && !mine('m:' + id)) {
+        if (joined.length === 1 && !next.names[joined[0]]) {
+          // o perfil de quem acabou de entrar ainda não chegou: busca o nome e avisa em seguida
+          var jn = joined[0];
+          var bname = b.name;
+          nameFor(jn).then(function (nm) { toast((nm || 'Uma pessoa') + ' entrou em “' + bname + '”.'); });
+        } else {
+          msgs.push((joined.length === 1 ? next.names[joined[0]] + ' entrou' : joined.length + ' pessoas entraram') + ' em “' + b.name + '”.');
+        }
+      }
+      if (left.length && !mine('m:' + id)) msgs.push((left.length === 1 && next.names[left[0]] ? next.names[left[0]] + ' saiu' : (left.length === 1 ? 'Uma pessoa saiu' : left.length + ' pessoas saíram')) + ' de “' + b.name + '”.');
       var where = view === 'project' && id === currentId ? '' : ' em “' + b.name + '”';
       if (plus.length === 1 && !minus.length) {
         var by = b.who[plus[0]];
@@ -1969,7 +2241,7 @@ h1 { overflow-wrap: anywhere; }
       }
     });
     Object.keys(prev.projects).forEach(function (id) {
-      if (!next.projects[id] && !mine('p:' + id)) msgs.push('A meta “' + prev.projects[id].name + '” foi excluída.');
+      if (!next.projects[id] && !mine('p:' + id)) msgs.push('A meta “' + prev.projects[id].name + '” não está mais na sua lista.');
     });
     if (msgs.length === 1) toast(msgs[0]);
     else if (msgs.length > 1) toast('As metas foram atualizadas.');
@@ -1990,7 +2262,8 @@ h1 { overflow-wrap: anywhere; }
     data = next;
     ready = true;
     if (cloudStatus !== 'denied') cloudStatus = statusFromMeta(qs.metadata);
-    if (pendingHash) route();
+    if (awaitMeta && data.projects[awaitMeta]) { var am = awaitMeta; awaitMeta = ''; go('p-' + am); }
+    else if (pendingHash) route();
     else render();
     saveMirror();
     if (view === 'project') {
@@ -2032,6 +2305,15 @@ h1 { overflow-wrap: anywhere; }
         }, function () { /* tenta de novo mais tarde */ });
       });
     });
+  }
+  function nameFor(uid) {
+    if (data.names[uid]) return Promise.resolve(data.names[uid]);
+    if (!fb) return Promise.resolve('');
+    return fb.fsM.getDoc(userRef(uid)).then(function (snap) {
+      var nm = snap.exists() ? snap.data().name : '';
+      if (typeof nm === 'string' && nm.trim()) { data.names[uid] = nm.trim().slice(0, 30); render(); return data.names[uid]; }
+      return '';
+    }, function () { return ''; });
   }
   function ensureProfile(oldNames) {
     var fs = fb.fsM;
@@ -2093,7 +2375,48 @@ h1 { overflow-wrap: anywhere; }
   }
   function afterFirstServerSnapshot() {
     migrateV2().then(function (oldNames) { return ensureProfile(oldNames); })
-      .then(function () { offerLegacyMarks(); }, function () { offerLegacyMarks(); });
+      .then(function () { offerLegacyMarks(); maybeProcessInvite(); }, function () { offerLegacyMarks(); maybeProcessInvite(); });
+  }
+  var pendingInvite = '';
+  var inviteData = null;
+  var awaitMeta = '';
+  var inviteBusy = false;
+  (function () {
+    var saved = loadKey(INVITE_KEY);
+    if (saved && typeof saved.code === 'string' && Date.now() - Number(saved.at) < INVITE_DAYS * 86400000) pendingInvite = saved.code;
+  })();
+  function setPendingInvite(code) {
+    pendingInvite = code;
+    try { window.localStorage.setItem(INVITE_KEY, JSON.stringify({ code: code, at: Date.now() })); } catch (e) { /* segue só nesta sessão */ }
+  }
+  function clearInvite() {
+    pendingInvite = '';
+    inviteData = null;
+    els.inviteCard.hidden = true;
+    els.inviteNote.hidden = true;
+    try { window.localStorage.removeItem(INVITE_KEY); } catch (e) { /* nada a limpar */ }
+  }
+  function maybeProcessInvite() {
+    els.inviteNote.hidden = !(pendingInvite && mode === 'cloud' && !me);
+    if (!pendingInvite) return;
+    if (mode !== 'cloud') { clearInvite(); toast('Convites funcionam no app conectado ao Firebase.'); return; }
+    if (!me || !fb || !gotServer || inviteBusy) return;
+    inviteBusy = true;
+    var code = pendingInvite;
+    fb.fsM.getDoc(fb.fsM.doc(fb.db, INVITE_COL, code)).then(function (snap) {
+      inviteBusy = false;
+      if (!snap.exists()) { clearInvite(); toast('Este convite não existe mais. Peça um link novo para quem convidou.'); return; }
+      var inv = snap.data() || {};
+      var metaName = String(inv.metaName || 'uma meta').slice(0, 40);
+      if (!(Number(inv.expiresAt) > Date.now())) { clearInvite(); toast('Este convite venceu. Peça um link novo para quem convidou.'); return; }
+      if (data.projects[inv.metaId]) { clearInvite(); toast('Você já participa de “' + metaName + '”.'); go('p-' + inv.metaId); return; }
+      inviteData = { code: code, metaId: String(inv.metaId || ''), metaName: metaName, ownerName: String(inv.ownerName || '').slice(0, 30) };
+      els.inviteText.textContent = (inviteData.ownerName || 'Alguém') + ' convidou você para a meta “' + metaName + '”. Participando, você vê e marca os depósitos dela.';
+      els.inviteCard.hidden = false;
+    }, function () {
+      inviteBusy = false;
+      toast('Não foi possível abrir o convite agora. Tente de novo em instantes.');
+    });
   }
   function offerLegacyMarks() {
     var flag = SENT_KEY + me.uid;
@@ -2140,6 +2463,7 @@ h1 { overflow-wrap: anywhere; }
       showBanner('');
       showSignedOut(true);
       render();
+      maybeProcessInvite();
       return;
     }
     showSignedOut(false);
@@ -2260,6 +2584,10 @@ h1 { overflow-wrap: anywhere; }
     np.end = els.npEnd.value;
     renderPreview();
   });
+  els.npDay.addEventListener('change', function () {
+    np.day = clampDay(els.npDay.value) || 1;
+    renderPreview();
+  });
   els.npFreqs.addEventListener('click', function (e) {
     var b = e.target.closest ? e.target.closest('button') : null;
     if (!b) return;
@@ -2284,7 +2612,7 @@ h1 { overflow-wrap: anywhere; }
     var start = ymd(today0());
     var p = normalizeProject(newId(), {
       name: name, goal: g, start: start, end: np.end, freq: np.freq,
-      values: planValues(g, np.freq, start, np.end), marks: {}, createdAt: Date.now(),
+      values: planValues(g, np.freq, start, np.end, np.day), marks: {}, createdAt: Date.now(), payDay: np.freq === 'monthly' ? np.day : 0,
       owner: me ? me.uid : '', members: me ? [me.uid] : []
     });
     recent['p:' + p.id] = Date.now();
@@ -2693,10 +3021,8 @@ h1 { overflow-wrap: anywhere; }
     loginMode = m;
     var up = m === 'up';
     Array.prototype.forEach.call(els.loginTabs.children, function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-m') === m ? 'true' : 'false'); });
-    els.loginTitle.textContent = up ? 'Criar sua conta' : 'Entrar no Goals';
-    els.loginLead.textContent = up
-      ? 'Crie sua conta com nome, e-mail e senha. Suas metas ficam visíveis só para você.'
-      : 'Entre com seu e-mail e senha. Cada pessoa vê só as próprias metas e as que forem compartilhadas com ela.';
+    els.loginTitle.textContent = up ? 'Criar conta' : 'Entrar';
+    els.loginLead.textContent = up ? 'Crie sua conta com nome, e-mail e senha.' : 'Entre com seu e-mail e senha.';
     els.signupNameWrap.hidden = !up;
     els.passHint.hidden = !up;
     els.loginPass.setAttribute('autocomplete', up ? 'new-password' : 'current-password');
@@ -2704,6 +3030,121 @@ h1 { overflow-wrap: anywhere; }
     els.loginReset.hidden = up;
     showLoginMsg('', false);
   }
+  els.inviteAccept.addEventListener('click', function () {
+    if (!inviteData || !fb || !me) return;
+    var inv = inviteData;
+    clearInvite();
+    recent['m:' + inv.metaId] = Date.now() + 15000;
+    recent['p:' + inv.metaId] = Date.now() + 15000;
+    var fs = fb.fsM;
+    fs.updateDoc(docRef(inv.metaId), 'members', fs.arrayUnion(me.uid), 'lastInvite', inv.code).then(function () {
+      toast('Agora você participa de “' + inv.metaName + '”.');
+      if (data.projects[inv.metaId]) go('p-' + inv.metaId); else awaitMeta = inv.metaId;
+    }, function () {
+      toast('Não deu para entrar nessa meta. O convite pode ter vencido ou a meta foi excluída.');
+    });
+  });
+  els.inviteDecline.addEventListener('click', function () { clearInvite(); });
+
+  // ---------- convidar, remover, sair ----------
+  var inviteCache = {};
+  function newCode(len) {
+    var chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    var buf = new Uint8Array(len);
+    try { window.crypto.getRandomValues(buf); } catch (e) { for (var j = 0; j < len; j++) buf[j] = Math.floor(Math.random() * 256); }
+    var out = '';
+    for (var i = 0; i < len; i++) out += chars[buf[i] % chars.length];
+    return out;
+  }
+  function inviteUrl(code) {
+    var base = /^https?:$/.test(location.protocol) ? location.origin + location.pathname : SITE_URL;
+    return base + '#convite-' + code;
+  }
+  function myName() { return (me && (data.names[me.uid] || defaultName(me.email))) || ''; }
+  function inviteMessage(p, url) { return myName() + ' convidou você para guardar junto na meta “' + p.name + '” no Goals: ' + url; }
+  els.inviteBtn.addEventListener('click', function () {
+    var p = current();
+    if (!p || !fb || !me || !isOwner(p)) return;
+    if (!canEdit()) { toast(blockedMessage()); return; }
+    var c = inviteCache[p.id];
+    if (!c || c.exp - Date.now() < 86400000) {
+      c = inviteCache[p.id] = { code: newCode(24), exp: Date.now() + INVITE_DAYS * 86400000 };
+      var fs = fb.fsM;
+      fs.setDoc(fs.doc(fb.db, INVITE_COL, c.code), { metaId: p.id, owner: me.uid, metaName: p.name, ownerName: myName(), createdAt: Date.now(), expiresAt: c.exp })
+        .catch(function () { delete inviteCache[p.id]; els.inviteBox.hidden = true; renderPeople(p, true); toast('Não foi possível criar o convite agora. Tente de novo em instantes.'); });
+    }
+    var url = inviteUrl(c.code);
+    els.inviteLink.value = url;
+    els.inviteWa.href = 'https://wa.me/?text=' + encodeURIComponent(inviteMessage(p, url));
+    els.inviteShare.hidden = !navigator.share;
+    els.inviteBox.hidden = false;
+    els.inviteBtn.hidden = true;
+  });
+  els.inviteShare.addEventListener('click', function () {
+    var p = current();
+    if (!p || !navigator.share) return;
+    navigator.share({ title: 'Convite para a meta ' + p.name, text: inviteMessage(p, '').replace(/: $/, '.'), url: els.inviteLink.value }).catch(function () { /* compartilhamento cancelado */ });
+  });
+  els.inviteCopy.addEventListener('click', function () {
+    var url = els.inviteLink.value;
+    function fallback() {
+      try { els.inviteLink.focus(); els.inviteLink.select(); document.execCommand('copy'); toast('Link copiado.'); }
+      catch (e) { toast('Selecione o link e copie manualmente.'); }
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(function () { toast('Link copiado.'); }, fallback);
+    else fallback();
+  });
+  var removeUid = '';
+  els.pPeople.addEventListener('click', function (e) {
+    var b = e.target.closest ? e.target.closest('.p-remove') : null;
+    var p = current();
+    if (!b || !p) return;
+    removeUid = b.getAttribute('data-uid');
+    var nm = data.names[removeUid] || 'esta pessoa';
+    els.removeText.textContent = 'Remover ' + nm + ' de “' + p.name + '”? A meta some da lista dela, e as marcações que ela fez continuam aqui.';
+    els.removeConfirm.hidden = false;
+  });
+  els.removeNo.addEventListener('click', function () { els.removeConfirm.hidden = true; removeUid = ''; });
+  els.removeYes.addEventListener('click', function () {
+    var p = current();
+    els.removeConfirm.hidden = true;
+    if (!p || !removeUid || !fb) return;
+    var uid = removeUid;
+    removeUid = '';
+    var nm = data.names[uid] || 'A pessoa';
+    recent['m:' + p.id] = Date.now() + 10000;
+    p.members = p.members.filter(function (u) { return u !== uid; });
+    render();
+    fb.fsM.updateDoc(docRef(p.id), 'members', fb.fsM.arrayRemove(uid)).then(function () {
+      toast(nm + ' saiu de “' + p.name + '”.');
+    }, function () { toast('Não deu para remover agora. Tente de novo em instantes.'); });
+  });
+  els.leaveBtn.addEventListener('click', function () {
+    var p = current();
+    if (!p) return;
+    els.leaveText.textContent = 'Sair de “' + p.name + '”? A meta some da sua lista, e as marcações que você fez continuam nela.';
+    els.leaveConfirm.hidden = false;
+    els.leaveBtn.hidden = true;
+  });
+  els.leaveNo.addEventListener('click', function () { els.leaveConfirm.hidden = true; render(); });
+  els.leaveYes.addEventListener('click', function () {
+    var p = current();
+    els.leaveConfirm.hidden = true;
+    if (!p || !fb || !me) return;
+    var pid = p.id;
+    var name = p.name;
+    recent['p:' + pid] = Date.now() + 15000;
+    delete data.projects[pid];
+    currentId = null;
+    go('');
+    fb.fsM.updateDoc(docRef(pid), 'members', fb.fsM.arrayRemove(me.uid)).then(function () {
+      toast('Você saiu de “' + name + '”.');
+    }, function () { toast('Não deu para sair da meta agora. Tente de novo em instantes.'); });
+  });
+  function statusToast() { toast(syncText()[1] + '.'); }
+  els.brand.addEventListener('click', statusToast);
+  els.wordmarkSm.addEventListener('click', statusToast);
+
   els.loginTabs.addEventListener('click', function (e) {
     var b = e.target.closest ? e.target.closest('button') : null;
     if (b) setLoginMode(b.getAttribute('data-m'));
